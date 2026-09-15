@@ -1,0 +1,15 @@
+# OS / editor
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.tmp
+*~
+.vscode/
+.idea/
+
+# logs and caches
+*.log
+.cache/
+
+# optional: ignore huge image dumps if they should not live in git
+# サイト内のページ画像ダウンロード/
