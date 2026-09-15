@@ -1,0 +1,9 @@
+{
+  "name": "com.doujin.downloader",
+  "description": "Doujin Image Downloader Native Host",
+  "path": "I:\\サイト内のページ画像ダウンロード\\native-host\\native-host.bat",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://alpgohepapgifofbfcjijlhpkdnchmnf/"
+  ]
+}

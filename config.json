@@ -1,0 +1,8 @@
+{
+  "VIDEO_ROOT": "./mp4/",
+  "MANGA_ROOT": "./エロ漫画/",
+  "ASMR_ROOT": "./ASMR/",
+
+  "SEARCH_ENGINE_URL": "http://192.168.1.12:3000",
+  "DOWNLOAD_TOOL_DIR": "C:\RocalHTMLSite\サイト内ページ操作\サイト内のページ画像ダウンロード"
+}

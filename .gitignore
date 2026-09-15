@@ -11,6 +11,10 @@ Desktop.ini
 *.log
 .cache/
 
+# dependencies
+node_modules/
+*.exe
+
 # media folders
 ASMR/
 mp4/

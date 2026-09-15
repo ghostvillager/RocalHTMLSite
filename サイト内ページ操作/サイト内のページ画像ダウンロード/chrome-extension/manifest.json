@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "同人画像ダウンローダー",
+  "version": "1.0",
+  "permissions": ["activeTab", "nativeMessaging"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "このページをダウンロード"
+  },
+  "host_permissions": ["<all_urls>"]
+}

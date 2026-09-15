@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>同人画像ダウンローダー</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", "Meiryo", sans-serif;
+      background: #1e1e1e;
+      color: #eee;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 12px 16px;
+      background: #2d2d2d;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      border-bottom: 1px solid #444;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #555;
+      border-radius: 4px;
+      background: #333;
+      color: #fff;
+      font-size: 14px;
+    }
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      background: #0a84ff;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    button:hover { background: #0070e0; }
+    button:disabled { background: #555; cursor: not-allowed; }
+    button.danger { background: #ff453a; }
+    button.danger:hover { background: #d70015; }
+
+    #status {
+      padding: 6px 16px;
+      font-size: 13px;
+      background: #252525;
+      border-bottom: 1px solid #444;
+      min-height: 28px;
+    }
+
+    #main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    webview {
+      flex: 1;
+      border: none;
+      background: #111;
+    }
+    #side {
+      width: 220px;
+      background: #2d2d2d;
+      border-left: 1px solid #444;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #side h3 {
+      font-size: 14px;
+      color: #aaa;
+      margin-bottom: 4px;
+    }
+    #folder-path {
+      font-size: 12px;
+      color: #8f8;
+      word-break: break-all;
+      background: #1a1a1a;
+      padding: 8px;
+      border-radius: 4px;
+      min-height: 40px;
+    }
+    #progress {
+      font-size: 13px;
+      color: #0a84ff;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <input type="text" id="searchInput" placeholder="検索キーワード、または直接URLを入力...">
+    <button id="searchBtn">検索</button>
+    <button id="downloadBtn" class="danger">画像をダウンロード</button>
+  </header>
+
+  <div id="status">準備完了</div>
+
+  <div id="main">
+    <webview id="webview" src="about:blank" allowpopups></webview>
+
+    <div id="side">
+      <div>
+        <h3>保存先フォルダ</h3>
+        <button id="selectFolderBtn" style="width:100%; margin-bottom:8px;">フォルダを選択</button>
+        <div id="folder-path">未選択</div>
+      </div>
+
+      <div>
+        <h3>進捗</h3>
+        <div id="progress">-</div>
+      </div>
+
+      <div style="margin-top:auto; font-size:12px; color:#888;">
+        ※ 画像が遅延読み込みの場合は、<br>
+        ページを下までスクロールしてから<br>
+        「画像をダウンロード」を押してください。
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const selectFolderBtn = document.getElementById('selectFolderBtn');
+    const webview = document.getElementById('webview');
+    const statusEl = document.getElementById('status');
+    const folderPathEl = document.getElementById('folder-path');
+    const progressEl = document.getElementById('progress');
+  
+    let saveBaseDir = null;
+  
+    // ===== 起動時に設定を読み込む =====
+    async function loadSavedFolder() {
+      try {
+        const config = await window.electronAPI.getConfig();
+        if (config && config.saveBaseDir) {
+          saveBaseDir = config.saveBaseDir;
+          folderPathEl.textContent = saveBaseDir;
+          statusEl.textContent = '保存先を読み込みました';
+        }
+      } catch (err) {
+        console.error('設定読み込み失敗', err);
+      }
+    }
+  
+    // ページ読み込み完了後に実行
+    loadSavedFolder();
+  
+    // ===== 検索 =====
+    searchBtn.addEventListener('click', () => {
+      const query = searchInput.value.trim();
+      if (!query) return;
+  
+      let url;
+      if (query.startsWith('http://') || query.startsWith('https://')) {
+        url = query;
+      } else {
+        url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+      }
+  
+      statusEl.textContent = '読み込み中...';
+      webview.src = url;
+    });
+  
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') searchBtn.click();
+    });
+  
+    webview.addEventListener('did-finish-load', () => {
+      statusEl.textContent = 'ページ読み込み完了';
+    });
+  
+    // ===== 保存先フォルダ選択 =====
+    selectFolderBtn.addEventListener('click', async () => {
+      const folder = await window.electronAPI.selectFolder();
+      if (folder) {
+        saveBaseDir = folder;
+        folderPathEl.textContent = folder;
+        statusEl.textContent = '保存先を更新・保存しました';
+      }
+    });
+  
+    // ===== 進捗受信 =====
+    window.electronAPI.onProgress((data) => {
+      progressEl.textContent = `${data.current} / ${data.total} : ${data.fileName}`;
+    });
+  
+    // ===== 画像ダウンロード =====
+    downloadBtn.addEventListener('click', async () => {
+      if (!saveBaseDir) {
+        alert('先に保存先フォルダを選択してください');
+        return;
+      }
+  
+      downloadBtn.disabled = true;
+      statusEl.textContent = '画像を収集中...';
+      progressEl.textContent = '-';
+  
+      try {
+        const result = await webview.executeJavaScript(`
+          (function() {
+            const title = document.title || 'untitled';
+            const imgs = Array.from(document.querySelectorAll('img'));
+            const urls = [];
+  
+            for (const img of imgs) {
+              let src = img.currentSrc || img.src || img.dataset.src || img.getAttribute('data-original');
+              if (!src) continue;
+  
+              try {
+                src = new URL(src, location.href).href;
+              } catch (e) { continue; }
+  
+              if (img.naturalWidth > 0 && img.naturalWidth < 100) continue;
+              if (img.naturalHeight > 0 && img.naturalHeight < 100) continue;
+              if (src.startsWith('data:') || src.startsWith('about:')) continue;
+  
+              if (!urls.includes(src)) {
+                urls.push(src);
+              }
+            }
+  
+            return { title, imageUrls: urls };
+          })();
+        `);
+  
+        if (!result || !result.imageUrls || result.imageUrls.length === 0) {
+          statusEl.textContent = '画像が見つかりませんでした。ページをスクロールしてから再試行してください。';
+          downloadBtn.disabled = false;
+          return;
+        }
+  
+        statusEl.textContent = `${result.imageUrls.length} 枚の画像を発見。ダウンロード開始...`;
+  
+        const res = await window.electronAPI.downloadImages({
+          title: result.title,
+          imageUrls: result.imageUrls,
+          baseDir: saveBaseDir
+        });
+  
+        if (res.success) {
+          statusEl.textContent = res.message + ' → ' + res.folder;
+          if (res.errors && res.errors.length > 0) {
+            console.warn('一部失敗:', res.errors);
+          }
+        } else {
+          statusEl.textContent = 'エラー: ' + res.message;
+        }
+      } catch (err) {
+        statusEl.textContent = 'エラー: ' + err.message;
+        console.error(err);
+      }
+  
+      downloadBtn.disabled = false;
+    });
+  </script>
+</body>
+</html>

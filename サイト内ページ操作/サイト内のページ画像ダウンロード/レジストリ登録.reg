@@ -1,0 +1,4 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Google\Chrome\NativeMessagingHosts\com.doujin.downloader]
+@="C:\RocalHTMLSite\サイト内ページ操作\サイト内のページ画像ダウンロード\\native-host\\com.doujin.downloader.json"

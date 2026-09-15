@@ -1,0 +1,10 @@
+ローカル動画ギャラリー 接続先
+
+■ 同一PC用
+http://localhost:8000/index.html
+
+■ LAN内アクセス用
+http://192.168.1.3:8000/index.html
+
+■ ダウンロードAPI用ポート
+http://localhost:3456

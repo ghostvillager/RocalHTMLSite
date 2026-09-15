@@ -1,0 +1,30 @@
+2026/07/29 21:31:45.25 bat started 
+node found 
+2026-07-29T12:31:45.456Z ===== native-host.js started =====
+
+2026-07-29T12:31:45.498Z argv: ["C:\\Program Files\\nodejs\\node.exe","I:\\サイト内のページ画像ダウンロード\\native-host\\native-host.js"]
+
+2026-07-29T12:31:45.523Z cwd: I:\サイト内のページ画像ダウンロード\native-host
+
+2026-07-29T12:31:45.543Z received chunk size: 53
+
+2026-07-29T12:31:45.563Z message length: 49
+
+2026-07-29T12:31:45.589Z message body: {"url":"https://momon-ga.com/fanzine/mo3772936/"}
+
+2026-07-29T12:31:45.608Z url: https://momon-ga.com/fanzine/mo3772936/
+
+2026-07-29T12:31:45.633Z appDir: I:\サイト内のページ画像ダウンロード
+
+2026-07-29T12:31:45.652Z electronPath: I:\サイト内のページ画像ダウンロード\node_modules\electron\dist\electron.exe
+
+2026-07-29T12:31:45.677Z electron exists: true
+
+2026-07-29T12:31:45.706Z spawned electron, pid: 6780
+
+2026-07-29T12:31:45.733Z sent: {"status":"started","url":"https://momon-ga.com/fanzine/mo3772936/"}
+
+(node:13032) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-29T12:32:21.770Z stdin end
+

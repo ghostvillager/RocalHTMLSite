@@ -1,0 +1,2 @@
+npm start -- --download="https://example.com"
+URLの部分に好きなURLを入力することでダウンロードできます。

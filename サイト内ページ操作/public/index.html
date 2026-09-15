@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Remote Browser</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+    }
+    #canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #000;
+      cursor: none;
+    }
+    #info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: lime;
+      font-family: monospace;
+      font-size: 14px;
+      background: rgba(0,0,0,0.75);
+      padding: 6px 12px;
+      z-index: 20;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">接続待機中...</div>
+  <canvas id="canvas" width="1280" height="720"></canvas>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const info = document.getElementById('info');
+    let ws;
+    let frameCount = 0;
+    let lastFrame = null;
+
+    // 仮想マウス位置
+    let mouseX = 640;
+    let mouseY = 360;
+
+    function connect() {
+      info.textContent = 'WebSocket接続中...';
+      ws = new WebSocket(`ws://${location.host}`);
+
+      ws.onopen = () => {
+        info.textContent = '接続完了';
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'frame' && msg.data) {
+            frameCount++;
+            const img = new Image();
+            img.onload = () => {
+              lastFrame = img;
+              redraw();
+              info.textContent = `フレーム: ${frameCount}`;
+            };
+            img.src = 'data:image/jpeg;base64,' + msg.data;
+          }
+        } catch (e) {
+          info.textContent = '解析エラー';
+        }
+      };
+
+      ws.onclose = () => {
+        info.textContent = '切断 → 再接続中...';
+        setTimeout(connect, 2000);
+      };
+    }
+
+    // フレーム + 仮想カーソルを描画
+    function redraw() {
+      if (lastFrame) {
+        ctx.drawImage(lastFrame, 0, 0, canvas.width, canvas.height);
+      }
+      drawCursor(mouseX, mouseY);
+    }
+
+    // 仮想カーソル（大きくて目立つように）
+    function drawCursor(x, y) {
+      // 外側の白い円
+      ctx.beginPath();
+      ctx.arc(x, y, 14, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fill();
+
+      // 赤い円
+      ctx.beginPath();
+      ctx.arc(x, y, 10, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 30, 30, 0.95)';
+      ctx.fill();
+
+      // 十字
+      ctx.beginPath();
+      ctx.moveTo(x - 20, y);
+      ctx.lineTo(x + 20, y);
+      ctx.moveTo(x, y - 20);
+      ctx.lineTo(x, y + 20);
+      ctx.strokeStyle = 'rgba(255,0,0,0.9)';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+    }
+
+    // マウス移動
+    canvas.addEventListener('mousemove', e => {
+      const rect = canvas.getBoundingClientRect();
+      mouseX = Math.round((e.clientX - rect.left) * (1280 / rect.width));
+      mouseY = Math.round((e.clientY - rect.top) * (720 / rect.height));
+      mouseX = Math.max(0, Math.min(1279, mouseX));
+      mouseY = Math.max(0, Math.min(719, mouseY));
+
+      // カーソルをすぐに再描画（フレームを待たない）
+      redraw();
+
+      if (ws?.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'mouse', action: 'move', x: mouseX, y: mouseY }));
+      }
+    });
+
+    // マウスボタン
+    canvas.addEventListener('mousedown', e => {
+      if (ws?.readyState !== 1) return;
+
+      if (e.button === 3) { // 戻る
+        e.preventDefault();
+        ws.send(JSON.stringify({ type: 'mouse', action: 'back' }));
+        return;
+      }
+      if (e.button === 4) { // 進む
+        e.preventDefault();
+        ws.send(JSON.stringify({ type: 'mouse', action: 'forward' }));
+        return;
+      }
+
+      ws.send(JSON.stringify({
+        type: 'mouse',
+        action: 'down',
+        x: mouseX,
+        y: mouseY,
+        button: e.button === 2 ? 'right' : 'left'
+      }));
+    });
+
+    canvas.addEventListener('mouseup', e => {
+      if (ws?.readyState !== 1) return;
+      if (e.button === 3 || e.button === 4) return;
+      ws.send(JSON.stringify({
+        type: 'mouse',
+        action: 'up',
+        button: e.button === 2 ? 'right' : 'left'
+      }));
+    });
+
+    canvas.addEventListener('wheel', e => {
+      if (ws?.readyState !== 1) return;
+      ws.send(JSON.stringify({ type: 'mouse', action: 'wheel', deltaY: e.deltaY }));
+    });
+
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+    // ===== 日本語入力対応 =====
+    // 通常のキー
+    window.addEventListener('keydown', e => {
+      if (ws?.readyState !== 1) return;
+      // IME変換中は無視（compositionで処理）
+      if (e.isComposing || e.key === 'Process') return;
+
+      ws.send(JSON.stringify({
+        type: 'keyboard',
+        action: 'down',
+        key: e.key
+      }));
+    });
+
+    window.addEventListener('keyup', e => {
+      if (ws?.readyState !== 1) return;
+      if (e.isComposing || e.key === 'Process') return;
+
+      ws.send(JSON.stringify({
+        type: 'keyboard',
+        action: 'up',
+        key: e.key
+      }));
+    });
+
+    // IME確定時にテキストを送る
+    window.addEventListener('compositionend', e => {
+      if (ws?.readyState !== 1) return;
+      if (e.data) {
+        ws.send(JSON.stringify({
+          type: 'type',
+          text: e.data
+        }));
+      }
+    });
+
+    connect();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1004 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>個人用ライブラリ</title>
+<style>
+  :root{
+    --bg:#0d1a2e;
+    --bg2:#13263f;
+    --card:#17304c;
+    --line:#3d6a96;
+    --text:#ffffff;
+    --muted:#d7e6f5;
+    --accent:#6ec1ff;
+    --accent2:#2f7ec4;
+    --gap:12px;
+    --card-w:196px;
+    --radius:8px;
+    --stroke:0 -1px 0 #06101c, 0 1px 0 #06101c, -1px 0 0 #06101c, 1px 0 0 #06101c, 0 0 3px #06101c;
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;background:var(--bg);color:var(--text);text-shadow:var(--stroke)}
+  header{padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  header h1{font-size:1rem;margin:0;font-weight:700;letter-spacing:.03em;color:#fff;text-shadow:var(--stroke)}
+  #rootSwitch{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  #breadcrumb{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  #status{margin-left:auto;font-size:.8rem;color:var(--muted)}
+  #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:var(--gap);padding:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;min-height:128px;cursor:pointer}
+  .card:hover{border-color:var(--accent)}
+  .thumb-wrap{position:relative;width:100%;padding-top:56.25%;background:#0a1524;overflow:hidden}
+  .thumb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#0a1524}
+  .meta{padding:8px 10px;display:flex;gap:8px;align-items:center;background:linear-gradient(180deg,#1a3554,#132948)}
+  .title{flex:1;font-size:.84rem;word-break:break-all;color:#fff;line-height:1.35;font-weight:650;text-shadow:var(--stroke)}
+  .playbtn{background:var(--accent2);border:1px solid #8ecfff;color:#fff;padding:.35rem .55rem;border-radius:6px;cursor:pointer;font-size:.78rem;text-shadow:var(--stroke)}
+  .card:focus,.card[aria-selected="true"]{outline:2px solid var(--accent);outline-offset:1px}
+  .folder-icon{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#234668,#163250);position:absolute;inset:0}
+  .folder-svg{width:44px;height:44px;opacity:.95}
+  #overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.88);z-index:9999;flex-direction:column;padding:16px;box-sizing:border-box}
+  #overlay.active{display:flex}
+  #playerWrap{width:92%;height:80%;max-width:1280px;max-height:720px;background:#000;display:flex;flex-direction:column;align-items:stretch;position:relative}
+  #player{width:100%;height:100%;background:#000;outline:none}
+  #readerImage{max-width:100%;max-height:100%;object-fit:contain;background:#000;display:block;margin:auto;cursor:pointer}
+  .overlay-top-controls{position:absolute;top:0;left:0;width:100%;z-index:99999;padding:8px 16px;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:10px;background:linear-gradient(180deg,rgba(0,0,0,.55),transparent)}
+  .overlay-left,.overlay-right{display:flex;gap:8px;align-items:center}
+  .overlay-controls{display:flex;justify-content:center;gap:10px;margin-top:10px}
+  .o-btn{background:#1b3a5c;border:1px solid #6aa3d4;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;min-width:88px;font-size:.85rem;text-shadow:var(--stroke)}
+  .small-btn{min-width:40px;padding:6px 10px}
+  .o-btn:hover{border-color:var(--accent)}
+  .speed-select{background:#111;border:1px solid #556275;color:#fff;padding:7px;border-radius:6px}
+  .overlay-top-controls .o-btn.flash{animation:flashWhiteBorder 450ms ease-out forwards}
+  @keyframes flashWhiteBorder{0%{outline:4px solid rgba(255,255,255,.85)}100%{outline:none}}
+  footer{padding:8px 16px;font-size:.8rem;color:#fff;border-top:1px solid var(--line);text-shadow:var(--stroke)}
+  .mode-btn{background:transparent;border:1px solid transparent;color:#fff;padding:6px 11px;border-radius:8px;cursor:pointer;text-shadow:var(--stroke)}
+  .mode-btn.active{border-color:var(--accent);background:rgba(110,193,255,.18);color:#fff}
+  #asmrTrackBtn{position:absolute;top:14px;right:14px;display:none;z-index:99999;background:#222;color:#fff;border:2px solid #fff;padding:8px 14px;border-radius:10px;font-size:14px;cursor:pointer;align-items:center;gap:8px}
+  #asmrPlaylistPanel{display:none;position:absolute;top:68px;right:14px;width:340px;background:#111;border:2px solid #fff;border-radius:12px;max-height:460px;overflow-y:auto;z-index:99999;padding:8px}
+  .playlist-item{padding:10px 12px;margin:3px 0;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer}
+  .playlist-item:hover,.playlist-item.current{background:rgba(255,255,255,.1)}
+  #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#f4f7fb;color:#111;padding:12px 22px;border-radius:10px;font-size:14px;display:none;z-index:100000}
+  #recentPanel{position:fixed;bottom:20px;right:20px;width:270px;background:rgba(28,36,48,.97);border:1px solid var(--line);border-radius:12px;z-index:998;display:none;overflow:hidden;max-height:400px}
+  #recentPanel .header{padding:9px 12px;font-size:.85rem;color:var(--muted);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+  #recentList{max-height:190px;overflow-y:auto;padding:6px}
+  .recent-item{display:flex;align-items:center;gap:8px;padding:8px 10px;margin:3px 0;border-radius:8px;background:rgba(255,255,255,.05);cursor:pointer}
+  .recent-item:hover{background:rgba(255,255,255,.1)}
+  .recent-item .name{flex:1;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .recent-item .type{font-size:.68rem;color:#9cc4ff;background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px}
+  #searchMode{display:none;padding:10px 12px;box-sizing:border-box;height:calc(100vh - 52px);overflow:hidden}
+  .search-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+  .search-bar input[type=text]{padding:8px 10px;font-size:14px;width:min(420px,100%);border-radius:8px;border:1px solid #6aa3d4;background:#0b1a2d;color:#fff;text-shadow:none}
+  .search-frame{width:100%;height:calc(100vh - 168px);border:1px solid #4a5a6c;background:#111;box-sizing:border-box;position:relative}
+  .search-frame iframe{width:100%;height:100%;border:none;display:block;background:#111}
+  .search-hint{font-size:.75rem;color:var(--muted)}
+  #downloadMsg{color:#ff8a8a;font-weight:600;margin-left:6px;font-size:.82rem}
+  @media (max-width:600px){:root{--card-w:140px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>個人用ライブラリ</h1>
+  <div id="rootSwitch">
+    <button id="modeVideo" class="mode-btn active" title="動画モード">動画</button>
+    <button id="modeManga" class="mode-btn" title="漫画モード">漫画</button>
+    <button id="modeASMR" class="mode-btn" title="ASMRモード">ASMR</button>
+    <button id="modeSearch" class="mode-btn" title="検索・ダウンロード">検索</button>
+  </div>
+  <div id="breadcrumb"></div>
+  <div id="status" aria-live="polite">読み込み中…</div>
+</header>
+<main>
+  <div id="grid" role="list"></div>
+  <div id="searchMode">
+    <div class="search-bar">
+      <button id="searchBackBtn" class="o-btn small-btn" title="戻る">←</button>
+      <button id="searchForwardBtn" class="o-btn small-btn" title="進む">→</button>
+      <button id="searchScrollUpBtn" class="o-btn small-btn" title="上へ">↑</button>
+      <button id="searchScrollDownBtn" class="o-btn small-btn" title="下へ">↓</button>
+      <input type="text" id="textInput" placeholder="検索語・テキストを入力して Enter" autocomplete="off">
+      <button id="sendTextBtn" class="o-btn">送信</button>
+      <button id="downloadMangaBtn" class="o-btn" style="background:#8b2e2e;min-width:140px;">漫画DL</button>
+      <span id="downloadMsg"></span>
+    </div>
+    <div class="search-hint">リモート画面が暗い／カーソルが見えないときは下の枠をクリックしてフォーカスを移してください。入力キャレットはリモート側の描画に依存します。</div>
+    <div class="search-frame">
+      <iframe id="remoteBrowser" src="about:blank" allow="clipboard-read; clipboard-write"></iframe>
+    </div>
+  </div>
+</main>
+<div id="overlay" role="dialog" aria-hidden="true">
+  <div id="playerWrap">
+    <video id="player" controls playsinline preload="none" style="display:block"></video>
+    <img id="readerImage" alt="ビューア" style="display:none" />
+    <div class="overlay-top-controls" id="mangaControls" style="display:none">
+      <div class="overlay-left">
+        <button id="overlayPrev" class="o-btn small-btn" title="前へ">◀</button>
+        <button id="overlayPlayPause" class="o-btn" title="再生 / 一時停止" style="min-width:120px;display:flex;align-items:center;justify-content:center;gap:8px;"></button>
+        <button id="overlayNext" class="o-btn small-btn" title="次へ">▶</button>
+        <select id="speedSelect" class="speed-select" aria-label="再生速度">
+          <option value="0.75">0.75x</option>
+          <option value="1" selected>1x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2">2x</option>
+          <option value="4">4x</option>
+        </select>
+      </div>
+      <div class="overlay-right" id="autoToggleContainer">
+        <label style="font-size:0.85rem;color:#d7e2ee;margin-right:6px">オート</label>
+        <input id="autoToggle" type="checkbox" aria-label="オート再生切替" checked/>
+      </div>
+    </div>
+    <button id="asmrTrackBtn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+      トラック
+    </button>
+    <div id="asmrPlaylistPanel"></div>
+  </div>
+  <div class="overlay-controls">
+    <button id="closeBtn" class="o-btn">閉じる</button>
+    <button id="fsBtn" class="o-btn">全画面</button>
+  </div>
+</div>
+<div id="recentPanel">
+  <div class="header"><span>最近再生</span><button onclick="clearRecent()" style="background:none;border:none;color:#999;font-size:1.2rem;line-height:1;cursor:pointer;padding:0 4px;">×</button></div>
+  <div id="recentList"></div>
+</div>
+<div id="toast"></div>
+<footer>操作: 矢印 / Enter で開く / 画像クリックで次へ / Esc で閉じる</footer>
+<script>
+(async ()=>{
+  'use strict';
+  const DEFAULT_CONFIG = {
+    VIDEO_ROOT: './mp4/',
+    MANGA_ROOT: './エロ漫画/',
+    ASMR_ROOT: './ASMR/',
+    SEARCH_ENGINE_URL: 'http://192.168.1.12:3000',
+    DOWNLOAD_TOOL_DIR: 'C:\\RocalHTMLSite\\サイト内ページ操作\\サイト内のページ画像ダウンロード',
+    GEN_VIDEO_THUMB: false
+  };
+  let CONFIG = { ...DEFAULT_CONFIG };
+  try {
+    const res = await fetch('./config.json');
+    if (res.ok) CONFIG = { ...DEFAULT_CONFIG, ...await res.json() };
+  } catch (e) {}
+  const VIDEO_ROOT = CONFIG.VIDEO_ROOT;
+  const MANGA_ROOT = CONFIG.MANGA_ROOT;
+  const ASMR_ROOT = CONFIG.ASMR_ROOT;
+  const SEARCH_ENGINE_URL = CONFIG.SEARCH_ENGINE_URL;
+  const DOWNLOAD_TOOL_DIR = CONFIG.DOWNLOAD_TOOL_DIR;
+  const AUTO_FULLSCREEN = true;
+  const grid = document.getElementById('grid');
+  const status = document.getElementById('status');
+  const breadcrumb = document.getElementById('breadcrumb');
+  const overlay = document.getElementById('overlay');
+  const player = document.getElementById('player');
+  const readerImage = document.getElementById('readerImage');
+  const closeBtn = document.getElementById('closeBtn');
+  const fsBtn = document.getElementById('fsBtn');
+  const modeVideoBtn = document.getElementById('modeVideo');
+  const modeMangaBtn = document.getElementById('modeManga');
+  const modeASMRBtn = document.getElementById('modeASMR');
+  const modeSearchBtn = document.getElementById('modeSearch');
+  const mangaControls = document.getElementById('mangaControls');
+  const overlayPlayPause = document.getElementById('overlayPlayPause');
+  const overlayPrev = document.getElementById('overlayPrev');
+  const overlayNext = document.getElementById('overlayNext');
+  const autoToggle = document.getElementById('autoToggle');
+  const speedSelect = document.getElementById('speedSelect');
+  const asmrTrackBtn = document.getElementById('asmrTrackBtn');
+  const asmrPlaylistPanel = document.getElementById('asmrPlaylistPanel');
+  const toast = document.getElementById('toast');
+  const recentPanel = document.getElementById('recentPanel');
+  const recentList = document.getElementById('recentList');
+  const searchMode = document.getElementById('searchMode');
+  let currentPath = '';
+  let renderId = 0;
+  let currentIndex = 0;
+  let currentMode = 'video';
+  let mangaImages = [];
+  let mangaIndex = 0;
+  let mangaAutoTimer = null;
+  let asmrAudio = null;
+  let asmrTracks = [];
+  let currentASMRTrackIndex = 0;
+  let currentVideoPlaylist = [];
+  let currentVideoPlaylistIndex = 0;
+  let currentFolderVideoFiles = [];
+  let recentItems = [];
+  let outsideClickHandler = null;
+  const MANGA_EXCLUDE = new Set(['エロ漫画視聴ソフト']);
+  const thumbQueue = [];
+  let thumbRunning = 0;
+  const THUMB_MAX = 2;
+  const dirCache = new Map();
+  const thumbCache = new Map();
+  let thumbObserver = null;
+
+  function safeDecode(s){ try{ return decodeURIComponent(s); }catch(e){} try{ return unescape(s); }catch(e){} return s; }
+  function joinUrl(base, rel){
+    const clean = (rel || '').replace(/^\/+/, '');
+    const parts = clean.split('/').filter(Boolean).map(p=>{ try{ p = decodeURIComponent(p); }catch(e){} return encodeURIComponent(p); });
+    const trailing = rel && rel.endsWith('/') ? '/' : '';
+    return base + (parts.length ? parts.join('/') + trailing : '');
+  }
+  async function listDir(url){
+    if (dirCache.has(url)) return dirCache.get(url);
+    const pending = (async ()=>{
+      try{
+        const res = await fetch(url);
+        if(!res.ok) return [];
+        const txt = await res.text();
+        const doc = new DOMParser().parseFromString(txt,'text/html');
+        const anchors = Array.from(doc.querySelectorAll('a'));
+        if(anchors.length > 0) return anchors.map(a=>a.getAttribute('href')).filter(h=>h && h!=="../");
+        const re = /href=\"([^\"]+)\"/ig;
+        const out2 = []; let m;
+        while((m = re.exec(txt)) !== null){ if(m[1] && m[1] !== "../") out2.push(m[1]); }
+        return out2;
+      }catch(e){ return []; }
+    })();
+    dirCache.set(url, pending);
+    const result = await pending;
+    dirCache.set(url, result);
+    return result;
+  }
+  function enqueueThumb(fn){
+    thumbQueue.push(fn);
+    pumpThumbs();
+  }
+  function pumpThumbs(){
+    while(thumbRunning < THUMB_MAX && thumbQueue.length){
+      const fn = thumbQueue.shift();
+      thumbRunning++;
+      Promise.resolve().then(fn).catch(()=>{}).finally(()=>{ thumbRunning--; pumpThumbs(); });
+    }
+  }
+  function generateThumbnailDataURL(videoUrl){
+    return new Promise((resolve)=>{
+      const v = document.createElement('video');
+      v.muted = true; v.playsInline = true; v.preload = 'metadata'; v.src = videoUrl;
+      let done = false;
+      const to = setTimeout(()=>{ if(!done){ done=true; cleanup(); resolve(null); } }, 18000);
+      function cleanup(){ clearTimeout(to); try{ v.pause(); v.removeAttribute('src'); v.load(); }catch(e){} }
+      v.addEventListener('loadedmetadata', ()=>{
+        const d = v.duration || 0;
+        let t;
+        if (!isFinite(d) || d <= 0) t = 15;
+        else if (d < 20) t = Math.max(1, d * 0.4);
+        else t = d * 0.42;
+        try{ v.currentTime = t; }catch(e){}
+      });
+      v.addEventListener('seeked', ()=>{
+        if(done) return;
+        try{
+          const w = v.videoWidth || 640, h = v.videoHeight || 360;
+          const scale = Math.min(1, 240 / w);
+          const c = document.createElement('canvas');
+          c.width = Math.max(120, Math.floor(w * scale));
+          c.height = Math.floor(h * scale);
+          c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+          done = true; cleanup(); resolve(c.toDataURL('image/jpeg', 0.6));
+        }catch(e){ done=true; cleanup(); resolve(null); }
+      });
+      v.addEventListener('error', ()=>{ if(!done){ done=true; cleanup(); resolve(null);} });
+    });
+  }
+  function tryImage(url, ms){
+    return new Promise(resolve=>{
+      const img = new Image();
+      const to = setTimeout(()=>{ img.onload = img.onerror = null; resolve(null); }, ms);
+      img.onload = ()=>{ clearTimeout(to); resolve(url); };
+      img.onerror = ()=>{ clearTimeout(to); resolve(null); };
+      img.src = url;
+    });
+  }
+  async function hasThumbnailUrlForVideo(baseRel){
+    const bases = [
+      joinUrl(VIDEO_ROOT, baseRel.replace(/\.mp4$/i,'.gif')),
+      joinUrl(VIDEO_ROOT, baseRel.replace(/\.mp4$/i,'.png')),
+      joinUrl(VIDEO_ROOT, baseRel.replace(/\.mp4$/i,'.jpg'))
+    ];
+    for(const u of bases){
+      const ok = await tryImage(u, 500);
+      if (ok) return ok;
+    }
+    return null;
+  }
+  async function probeFirstImageInFolder(folderUrl){
+    if (thumbCache.has(folderUrl)) return thumbCache.get(folderUrl);
+    let found = null;
+    const preferred = ['サムネイル.png','サムネイル.jpg','サムネイル.gif','thumbnail.png','thumbnail.jpg','cover.gif','cover.jpg','thumb.gif','thumb.jpg'];
+    for (const name of preferred){
+      const ok = await tryImage(joinUrl(folderUrl, name), 800);
+      if (ok){ found = ok; break; }
+    }
+    if (!found){
+      try{
+        const sub = await listDir(folderUrl);
+        const gifHref = sub.find(h => /\.gif$/i.test(h) && !h.endsWith('/'));
+        const imgHref = sub.find(h => /\.(jpe?g|png|webp|bmp)$/i.test(h) && !h.endsWith('/'));
+        if (gifHref) found = joinUrl(folderUrl, gifHref);
+        else if (imgHref) found = joinUrl(folderUrl, imgHref);
+      }catch(e){}
+    }
+    thumbCache.set(folderUrl, found);
+    return found;
+  }
+  async function getPreferredASMCover(folderUrl){
+    for(let prefix of ['ASMR','thumbnail']){
+      for(let ext of ['.png','.jpg']){
+        const url = joinUrl(folderUrl, prefix + ext);
+        if(await checkImageExists(url)) return url;
+      }
+    }
+    return null;
+  }
+  function checkImageExists(url){
+    return new Promise(resolve=>{
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  }
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(()=>{ toast.style.display = 'none'; }, 2200);
+  }
+  function makeFolderCard(name, relPath, thumbSrc){
+    const el = document.createElement('div'); el.className='card'; el.tabIndex=0; el.setAttribute('role','listitem');
+    el.dataset.path = relPath;
+    el.dataset.needthumb = thumbSrc ? '0' : '1';
+    const wrap = document.createElement('div'); wrap.className='thumb-wrap';
+    if(thumbSrc){
+      const img = document.createElement('img'); img.className='thumb'; img.alt=name; img.src = thumbSrc; img.loading='lazy';
+      wrap.appendChild(img);
+    }else{
+      const icon = document.createElement('div'); icon.className='folder-icon';
+      icon.innerHTML = '<svg class="folder-svg" viewBox="0 0 24 24" fill="none"><path d="M3 7a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" fill="#e0b45a"/></svg>';
+      wrap.appendChild(icon);
+    }
+    el.appendChild(wrap);
+    const meta=document.createElement('div'); meta.className='meta';
+    const title=document.createElement('div'); title.className='title'; title.textContent=safeDecode(name);
+    meta.appendChild(title); el.appendChild(meta);
+    el.addEventListener('click', ()=>{
+      if(currentMode === 'manga') openMangaFolder(relPath);
+      else if(currentMode === 'asmr') openASMRFolder(relPath);
+      else navigateTo(relPath);
+    });
+    return el;
+  }
+  function makeFileCardImage(item, thumbSrc){
+    const el = document.createElement('div'); el.className='card'; el.tabIndex=0; el.setAttribute('role','listitem'); el.dataset.path = item.relRaw;
+    const wrap = document.createElement('div'); wrap.className='thumb-wrap';
+    const img = document.createElement('img'); img.className='thumb'; img.alt=item.name; img.loading = 'lazy';
+    if (thumbSrc) img.src = thumbSrc;
+    wrap.appendChild(img); el.appendChild(wrap);
+    const meta=document.createElement('div'); meta.className='meta';
+    const title=document.createElement('div'); title.className='title'; title.textContent=item.name;
+    const btn=document.createElement('button'); btn.className='playbtn'; btn.textContent='開く';
+    meta.appendChild(title); meta.appendChild(btn); el.appendChild(meta);
+    function open(){ openMangaFolder(item.relRaw.replace(/[^\/]+$/,'')); }
+    el.addEventListener('click', open); btn.addEventListener('click', (e)=>{ e.stopPropagation(); open(); });
+    return el;
+  }
+  function videoThumbCandidates(relRaw){
+    return [
+      joinUrl(VIDEO_ROOT, relRaw.replace(/\.mp4$/i,'.gif')),
+      joinUrl(VIDEO_ROOT, relRaw.replace(/\.mp4$/i,'.png')),
+      joinUrl(VIDEO_ROOT, relRaw.replace(/\.mp4$/i,'.jpg')),
+      joinUrl(VIDEO_ROOT, relRaw.replace(/\.mp4$/i,'.webp'))
+    ];
+  }
+  const videoThumbMem = new Map();
+  function setVideoThumb(img, item){
+    const key = item.url;
+    if (videoThumbMem.has(key)){
+      const cached = videoThumbMem.get(key);
+      if (cached) img.src = cached;
+      return;
+    }
+    enqueueThumb(async ()=>{
+      const dataUrl = await generateThumbnailDataURL(item.url);
+      videoThumbMem.set(key, dataUrl);
+      if (dataUrl) img.src = dataUrl;
+    });
+  }
+  function makeFileCardVideo(item, thumbSrc){
+    const el = document.createElement('div'); el.className='card'; el.tabIndex=0; el.setAttribute('role','listitem'); el.dataset.url=item.url;
+    const wrap = document.createElement('div'); wrap.className='thumb-wrap';
+    const img = document.createElement('img'); img.className='thumb'; img.alt=item.name;
+    if (thumbSrc) img.src = thumbSrc;
+    else setVideoThumb(img, item);
+    wrap.appendChild(img); el.appendChild(wrap);
+    const meta=document.createElement('div'); meta.className='meta';
+    const title=document.createElement('div'); title.className='title'; title.textContent=item.name;
+    const btn=document.createElement('button'); btn.className='playbtn'; btn.textContent='再生';
+    meta.appendChild(title); meta.appendChild(btn); el.appendChild(meta);
+    function open(){ openPlayerVideo(item.url); }
+    el.addEventListener('click', open); btn.addEventListener('click', (e)=>{ e.stopPropagation(); open(); });
+    return el;
+  }
+  function getCols(){
+    const cardW = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--card-w')) || 200;
+    return Math.max(1, Math.floor(grid.clientWidth / Math.max(1, cardW)));
+  }
+  function focusIndex(i){
+    const cards = Array.from(grid.querySelectorAll('.card'));
+    if(cards.length===0) return;
+    currentIndex = ((i%cards.length)+cards.length)%cards.length;
+    const el = cards[currentIndex];
+    cards.forEach(c=>c.removeAttribute('aria-selected'));
+    el.setAttribute('aria-selected','true');
+    try{ el.focus({preventScroll:false}); }catch(e){ el.focus(); }
+  }
+  function loadCardThumb(card, thisId, base){
+    if (!card || card.dataset.thumbdone === '1') return;
+    card.dataset.thumbdone = '1';
+    enqueueThumb(async ()=>{
+      if (thisId !== renderId) return;
+      if (card.dataset.videorel){
+        const exist = await hasThumbnailUrlForVideo(card.dataset.videorel);
+        if (thisId !== renderId) return;
+        const img = card.querySelector('.thumb');
+        if (exist && img) img.src = exist;
+        return;
+      }
+      const relPath = card.dataset.path;
+      if (!relPath) return;
+      const folderUrl = joinUrl(base, relPath);
+      const thumb = await probeFirstImageInFolder(folderUrl);
+      if (thisId !== renderId) return;
+      const wrap = card.querySelector('.thumb-wrap');
+      if (thumb && wrap){
+        wrap.innerHTML = '';
+        const imgEl = document.createElement('img');
+        imgEl.className = 'thumb';
+        imgEl.src = thumb;
+        wrap.appendChild(imgEl);
+      }
+    });
+  }
+  function bindThumbObserver(thisId, base){
+    if (thumbObserver) { try{ thumbObserver.disconnect(); }catch(e){} }
+    thumbObserver = new IntersectionObserver((entries)=>{
+      for (const ent of entries){
+        if (!ent.isIntersecting) continue;
+        thumbObserver.unobserve(ent.target);
+        loadCardThumb(ent.target, thisId, base);
+      }
+    }, { root: null, rootMargin: '240px', threshold: 0 });
+    const cards = Array.from(grid.querySelectorAll('.card'));
+    cards.forEach(c => thumbObserver.observe(c));
+    cards.slice(0, 30).forEach(c => loadCardThumb(c, thisId, base));
+  }
+  async function renderCurrent(){
+    const thisId = ++renderId;
+    thumbQueue.length = 0;
+    if (thumbObserver) { try{ thumbObserver.disconnect(); }catch(e){} }
+    grid.innerHTML = '';
+    renderBreadcrumb();
+    status.textContent = '読み込み中…';
+    const relPrefix = currentPath;
+    const base = currentMode === 'video' ? VIDEO_ROOT : (currentMode === 'manga' ? MANGA_ROOT : ASMR_ROOT);
+    const url = joinUrl(base, relPrefix);
+    const entries = await listDir(url);
+    if (thisId !== renderId) return;
+    const folders = [], files = [];
+    for (const ent of entries){ if (ent.endsWith('/')) folders.push(ent); else files.push(ent); }
+    folders.sort((a,b) => safeDecode(a).localeCompare(safeDecode(b)));
+    files.sort((a,b) => safeDecode(a).localeCompare(safeDecode(b)));
+    if(currentMode === 'video') currentFolderVideoFiles = files.filter(f => f.toLowerCase().endsWith('.mp4'));
+    const frag = document.createDocumentFragment();
+    for (const f of folders){
+      if (currentMode === 'manga'){ const name = f.replace(/\/+$/,''); if (MANGA_EXCLUDE.has(name)) continue; }
+      const name = f.replace(/\/+$/,'');
+      const relPath = relPrefix + f;
+      frag.appendChild(makeFolderCard(name, relPath, null));
+    }
+    if (currentMode !== 'asmr'){
+      if (currentMode === 'video'){
+        for (const fileHref of files){
+          if (thisId !== renderId) return;
+          if (!fileHref.toLowerCase().endsWith('.mp4')) continue;
+          const displayName = safeDecode((relPrefix+fileHref).replace(/^\/+/, ''));
+          const fileUrl = joinUrl(VIDEO_ROOT, relPrefix + fileHref);
+          const item = { relRaw: relPrefix + fileHref, url: fileUrl, name: displayName };
+          frag.appendChild(makeFileCardVideo(item, null));
+        }
+      } else {
+        for (const fileHref of files){
+          if (thisId !== renderId) return;
+          if (!/\.(jpe?g|png|gif|webp|bmp)$/i.test(fileHref)) continue;
+          const displayName = safeDecode((relPrefix+fileHref).replace(/^\/+/, ''));
+          const fileUrl = joinUrl(MANGA_ROOT, relPrefix + fileHref);
+          const item = { relRaw: relPrefix + fileHref, url: fileUrl, name: displayName };
+          frag.appendChild(makeFileCardImage(item, item.url));
+        }
+      }
+    }
+    grid.appendChild(frag);
+    status.textContent = `${currentMode === 'video' ? 'フォルダ' : (currentMode === 'manga' ? '漫画' : 'ASMR')}: ${displayPathForStatus()} — ${folders.length} フォルダ, ${files.length} アイテム`;
+    bindThumbObserver(thisId, base);
+    focusIndex(0);
+  }
+  function renderBreadcrumb(){
+    breadcrumb.innerHTML = '';
+    const rootBtn = document.createElement('button');
+    rootBtn.textContent = (currentMode === 'video') ? '動画' : (currentMode === 'manga' ? '漫画' : 'ASMR');
+    rootBtn.className = 'o-btn'; rootBtn.style.minWidth='52px';
+    rootBtn.addEventListener('click', ()=>{ navigateTo(''); });
+    breadcrumb.appendChild(rootBtn);
+    if(!currentPath) return;
+    const parts = currentPath.split('/').filter(Boolean);
+    let acc = '';
+    for(let i=0;i<parts.length;i++){
+      acc += parts[i] + '/';
+      const btn = document.createElement('button');
+      btn.textContent = safeDecode(parts[i]);
+      btn.className = 'o-btn'; btn.style.minWidth='52px';
+      btn.addEventListener('click', ((p)=>()=>{ navigateTo(p); })(acc));
+      breadcrumb.appendChild(btn);
+    }
+  }
+  function displayPathForStatus(){
+    if(!currentPath) return '/';
+    return '/' + currentPath.split('/').filter(Boolean).map(p=>safeDecode(p)).join('/') + '/';
+  }
+  function loadRecent(){
+    const saved = localStorage.getItem('pornRecent');
+    recentItems = saved ? JSON.parse(saved) : [];
+    recentItems.sort((a,b) => b.timestamp - a.timestamp);
+  }
+  function saveToStorage(){ localStorage.setItem('pornRecent', JSON.stringify(recentItems.slice(0, 12))); }
+  function saveRecent(type, identifier, name){
+    recentItems = recentItems.filter(item => item.identifier !== identifier);
+    recentItems.unshift({ type, identifier, name: name || identifier.split('/').pop() || '不明', timestamp: Date.now() });
+    saveToStorage();
+  }
+  function renderRecentPanel(){
+    if (overlay.classList.contains('active') || recentItems.length === 0 || currentMode === 'search'){
+      recentPanel.style.display = 'none'; return;
+    }
+    recentList.innerHTML = '';
+    recentItems.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'recent-item';
+      const icon = item.type === 'video' ? '▶️' : (item.type === 'manga' ? '📖' : '🎧');
+      const typeLabel = item.type === 'video' ? '動画' : (item.type === 'manga' ? '漫画' : 'ASMR');
+      div.innerHTML = `<span class="icon">${icon}</span><div class="name">${safeDecode(item.name)}</div><span class="type">${typeLabel}</span>`;
+      div.onclick = () => {
+        if(item.type === 'video') openPlayerVideo(item.identifier);
+        else if(item.type === 'manga') openMangaFolder(item.identifier);
+        else if(item.type === 'asmr') openASMRFolder(item.identifier);
+      };
+      recentList.appendChild(div);
+    });
+    recentPanel.style.display = 'block';
+  }
+  window.clearRecent = function(){
+    if(confirm('最近再生リストをすべてクリアしますか？')){
+      recentItems = [];
+      localStorage.removeItem('pornRecent');
+      renderRecentPanel();
+    }
+  };
+  async function navigateTo(rel){
+    currentPath = rel || '';
+    await renderCurrent();
+    renderRecentPanel();
+  }
+  function openPlayerVideo(fileHref){
+    readerImage.style.display = 'none';
+    player.style.display = 'block';
+    mangaControls.style.display = 'flex';
+    document.getElementById('autoToggleContainer').style.display = 'none';
+    asmrTrackBtn.style.display = 'none';
+    asmrPlaylistPanel.style.display = 'none';
+    currentVideoPlaylist = currentFolderVideoFiles.map(h => joinUrl(VIDEO_ROOT, currentPath + h));
+    currentVideoPlaylistIndex = currentVideoPlaylist.findIndex(u => u.endsWith(fileHref));
+    if (currentVideoPlaylistIndex === -1) currentVideoPlaylistIndex = 0;
+    const url = currentVideoPlaylist[currentVideoPlaylistIndex] || joinUrl(VIDEO_ROOT, currentPath + fileHref);
+    player.src = url;
+    overlay.classList.add('active'); overlay.setAttribute('aria-hidden','false');
+    stopMangaAuto();
+    player.play().catch(()=>{});
+    updateOverlayPlayPauseLabel();
+    recentPanel.style.display = 'none';
+    saveRecent('video', fileHref, fileHref.split('/').pop() || '動画');
+    if (AUTO_FULLSCREEN) {
+      setTimeout(() => {
+        const wrap = document.getElementById('playerWrap');
+        if (wrap && wrap.requestFullscreen) wrap.requestFullscreen().catch(()=>{});
+      }, 150);
+    }
+  }
+  function closePlayer(){
+    try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){}
+    try{ player.pause(); }catch(e){}
+    player.removeAttribute('src'); player.load();
+    readerImage.src = '';
+    if (asmrAudio) { asmrAudio.pause(); asmrAudio.volume = 1.0; asmrAudio.src = ''; }
+    player.volume = 1.0;
+    asmrTrackBtn.style.display = 'none';
+    asmrPlaylistPanel.style.display = 'none';
+    overlay.classList.remove('active'); overlay.setAttribute('aria-hidden','true');
+    stopMangaAuto();
+    renderRecentPanel();
+  }
+  function toggleFullscreen(){
+    try{ if(document.fullscreenElement){ document.exitFullscreen(); } else { document.getElementById('playerWrap').requestFullscreen?.(); } }catch(e){}
+  }
+  async function openMangaFolder(rel){
+    const folderUrl = joinUrl(MANGA_ROOT, rel);
+    let sub = [];
+    try{ sub = await listDir(folderUrl); }catch(e){}
+    let imgs = sub.filter(h=>/\.(jpe?g|png|gif|webp|bmp)$/i.test(h));
+    let probeFirst = null;
+    try{ probeFirst = await probeFirstImageInFolder(folderUrl); }catch(e){}
+    if(imgs.length === 0){
+      mangaImages = probeFirst ? [probeFirst] : [];
+    } else {
+      imgs.sort((a,b)=>a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
+      mangaImages = imgs.map(h => joinUrl(folderUrl, h));
+    }
+    if(probeFirst && mangaImages.length>0){
+      mangaImages = mangaImages.filter(u=>u !== probeFirst);
+      mangaImages.unshift(probeFirst);
+    }
+    if(!mangaImages || mangaImages.length === 0){ alert('このフォルダに表示できる画像が見つかりません。'); return; }
+    mangaIndex = 0;
+    player.style.display = 'none';
+    readerImage.style.display = 'block';
+    readerImage.src = mangaImages[mangaIndex];
+    mangaControls.style.display = 'flex';
+    document.getElementById('autoToggleContainer').style.display = 'flex';
+    asmrTrackBtn.style.display = 'none';
+    asmrPlaylistPanel.style.display = 'none';
+    overlay.classList.add('active'); overlay.setAttribute('aria-hidden','false');
+    updateOverlayPlayPauseLabel();
+    if(autoToggle.checked) startMangaAuto();
+    recentPanel.style.display = 'none';
+    saveRecent('manga', rel, rel.replace(/\/$/, '').split('/').pop() || '漫画');
+    if (AUTO_FULLSCREEN) {
+      setTimeout(() => {
+        const wrap = document.getElementById('playerWrap');
+        if (wrap && wrap.requestFullscreen) wrap.requestFullscreen().catch(()=>{});
+      }, 150);
+    }
+  }
+  async function openASMRFolder(rel){
+    const folderUrl = joinUrl(ASMR_ROOT, rel);
+    const sub = await listDir(folderUrl);
+    const audioExts = ['.mp3','.wav','.m4a','.ogg','.aac','.flac'];
+    let audioFiles = sub.filter(h => audioExts.some(e => h.toLowerCase().endsWith(e)));
+    if (audioFiles.length === 0) { alert('このASMRフォルダに音声ファイルが見つかりません'); return; }
+    audioFiles.sort((a, b) => {
+      const na = parseInt((a.match(/(\d+)/)||[])[1]||999999);
+      const nb = parseInt((b.match(/(\d+)/)||[])[1]||999999);
+      return na - nb;
+    });
+    asmrTracks = audioFiles.map(h => ({ name: h, url: joinUrl(folderUrl, h) }));
+    currentASMRTrackIndex = 0;
+    const coverUrl = await getPreferredASMCover(folderUrl) || await probeFirstImageInFolder(folderUrl) || '';
+    player.style.display = 'none';
+    readerImage.style.display = 'block';
+    readerImage.src = coverUrl;
+    mangaControls.style.display = 'flex';
+    document.getElementById('autoToggleContainer').style.display = 'none';
+    asmrTrackBtn.style.display = 'flex';
+    asmrPlaylistPanel.style.display = 'none';
+    overlay.classList.add('active'); overlay.setAttribute('aria-hidden','false');
+    if (!asmrAudio) {
+      asmrAudio = document.createElement('audio');
+      asmrAudio.style.display = 'none';
+      document.getElementById('playerWrap').appendChild(asmrAudio);
+      asmrAudio.addEventListener('play', updateOverlayPlayPauseLabel);
+      asmrAudio.addEventListener('pause', updateOverlayPlayPauseLabel);
+      asmrAudio.addEventListener('playing', updateOverlayPlayPauseLabel);
+      asmrAudio.addEventListener('ended', () => {
+        updateOverlayPlayPauseLabel();
+        if (currentASMRTrackIndex + 1 < asmrTracks.length) playASMRTrack(currentASMRTrackIndex + 1);
+      });
+    }
+    asmrAudio.src = asmrTracks[0].url;
+    asmrAudio.playbackRate = 1;
+    asmrAudio.play().catch(()=>{});
+    stopMangaAuto();
+    updateOverlayPlayPauseLabel();
+    renderASMRPlaylist();
+    recentPanel.style.display = 'none';
+    saveRecent('asmr', rel, rel.replace(/\/$/, '').split('/').pop() || 'ASMR');
+    if (AUTO_FULLSCREEN) {
+      setTimeout(() => {
+        const wrap = document.getElementById('playerWrap');
+        if (wrap && wrap.requestFullscreen) wrap.requestFullscreen().catch(()=>{});
+      }, 150);
+    }
+  }
+  function flashButton(btn){ btn.classList.add('flash'); setTimeout(()=>{ btn.classList.remove('flash'); }, 500); }
+  function toggleASMRPlaylist(){
+    if (asmrPlaylistPanel.style.display === 'block') {
+      asmrPlaylistPanel.style.display = 'none';
+      if (outsideClickHandler) { document.removeEventListener('click', outsideClickHandler); outsideClickHandler = null; }
+    } else {
+      asmrPlaylistPanel.style.display = 'block';
+      renderASMRPlaylist();
+      setTimeout(() => {
+        outsideClickHandler = (e) => {
+          if (!asmrPlaylistPanel.contains(e.target) && !asmrTrackBtn.contains(e.target)) {
+            asmrPlaylistPanel.style.display = 'none';
+            document.removeEventListener('click', outsideClickHandler);
+            outsideClickHandler = null;
+          }
+        };
+        document.addEventListener('click', outsideClickHandler);
+      }, 100);
+    }
+  }
+  function renderASMRPlaylist(){
+    asmrPlaylistPanel.innerHTML = '';
+    asmrTracks.forEach((track, i) => {
+      const div = document.createElement('div');
+      div.className = 'playlist-item' + (i === currentASMRTrackIndex ? ' current' : '');
+      const icon = (i === currentASMRTrackIndex)
+        ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7z" fill="#ddd" stroke="#fff" stroke-width="1"/></svg>`
+        : `<span style="width:20px;display:inline-block;"></span>`;
+      div.innerHTML = `${icon}<span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${safeDecode(track.name)}</span>`;
+      div.onclick = (e) => { e.stopImmediatePropagation(); playASMRTrack(i); asmrPlaylistPanel.style.display = 'none'; };
+      asmrPlaylistPanel.appendChild(div);
+    });
+  }
+  function playASMRTrack(idx){
+    if (idx < 0 || idx >= asmrTracks.length) return;
+    currentASMRTrackIndex = idx;
+    if (asmrAudio) {
+      asmrAudio.pause();
+      asmrAudio.src = asmrTracks[idx].url;
+      asmrAudio.play().catch(()=>{});
+    }
+    renderASMRPlaylist();
+    updateOverlayPlayPauseLabel();
+    showToast(`トラック ${String(idx+1).padStart(2,'0')} に切り替えました`);
+  }
+  function showMangaAt(idx){
+    if(!mangaImages || mangaImages.length===0) return;
+    mangaIndex = ((idx % mangaImages.length)+mangaImages.length) % mangaImages.length;
+    readerImage.src = mangaImages[mangaIndex];
+  }
+  function nextManga(){ showMangaAt(mangaIndex+1); }
+  function prevManga(){ showMangaAt(mangaIndex-1); }
+  function startMangaAuto(){
+    stopMangaAuto();
+    const rate = parseFloat(speedSelect.value) || 1;
+    mangaAutoTimer = setInterval(()=>{ nextManga(); }, Math.round(6000 / rate));
+    updateOverlayPlayPauseLabel();
+  }
+  function stopMangaAuto(){
+    if(mangaAutoTimer){ clearInterval(mangaAutoTimer); mangaAutoTimer = null; }
+    updateOverlayPlayPauseLabel();
+  }
+  function updateOverlayPlayPauseLabel(){
+    let isPlaying = false;
+    if(currentMode === 'manga') isPlaying = !!mangaAutoTimer;
+    else if(currentMode === 'asmr') isPlaying = !!(asmrAudio && !asmrAudio.paused);
+    else isPlaying = !!(player && !player.paused);
+    if(isPlaying){
+      overlayPlayPause.innerHTML = `<svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>`;
+    } else {
+      overlayPlayPause.innerHTML = `<svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>`;
+    }
+  }
+  function showSearchMode() {
+    grid.style.display = 'none';
+    searchMode.style.display = 'block';
+    recentPanel.style.display = 'none';
+    breadcrumb.innerHTML = '';
+    status.textContent = '検索（リモート）';
+    const iframe = document.getElementById('remoteBrowser');
+    if (iframe) {
+      iframe.style.background = '#1a1a1a';
+      iframe.src = SEARCH_ENGINE_URL + '/';
+      iframe.addEventListener('load', () => {
+        try { iframe.contentWindow && iframe.contentWindow.focus(); } catch(e) {}
+      }, { once:true });
+    }
+    try {
+      fetch(SEARCH_ENGINE_URL + '/api/cursor', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ visible:true }) }).catch(()=>{});
+    } catch(e) {}
+  }
+  function hideSearchMode() {
+    searchMode.style.display = 'none';
+    grid.style.display = 'grid';
+    const iframe = document.getElementById('remoteBrowser');
+    if (iframe) iframe.src = 'about:blank';
+  }
+  function setMode(mode){
+    currentMode = mode;
+    modeVideoBtn.classList.toggle('active', currentMode === 'video');
+    modeMangaBtn.classList.toggle('active', currentMode === 'manga');
+    modeASMRBtn.classList.toggle('active', currentMode === 'asmr');
+    modeSearchBtn.classList.toggle('active', currentMode === 'search');
+    if (currentMode === 'search') {
+      showSearchMode();
+    } else {
+      hideSearchMode();
+      currentPath = '';
+      navigateTo('');
+    }
+  }
+  modeVideoBtn.addEventListener('click', ()=> setMode('video'));
+  modeMangaBtn.addEventListener('click', ()=> setMode('manga'));
+  modeASMRBtn.addEventListener('click', ()=> setMode('asmr'));
+  modeSearchBtn.addEventListener('click', ()=> setMode('search'));
+  document.getElementById('searchBackBtn').addEventListener('click', () => {
+    fetch(SEARCH_ENGINE_URL + '/api/back', { method: 'POST' });
+  });
+  document.getElementById('searchForwardBtn').addEventListener('click', () => {
+    fetch(SEARCH_ENGINE_URL + '/api/forward', { method: 'POST' });
+  });
+  document.getElementById('searchScrollUpBtn').addEventListener('click', () => {
+    fetch(SEARCH_ENGINE_URL + '/api/scroll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ direction: 'up', amount: 300 })
+    });
+  });
+  document.getElementById('searchScrollDownBtn').addEventListener('click', () => {
+    fetch(SEARCH_ENGINE_URL + '/api/scroll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ direction: 'down', amount: 300 })
+    });
+  });
+  document.getElementById('sendTextBtn').addEventListener('click', async () => {
+    const text = document.getElementById('textInput').value;
+    if (!text) return;
+    try {
+      await fetch(SEARCH_ENGINE_URL + '/api/type', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      document.getElementById('downloadMsg').textContent = '送信: ' + text;
+      document.getElementById('textInput').value = '';
+      setTimeout(() => { document.getElementById('downloadMsg').textContent = ''; }, 4000);
+    } catch (e) {
+      document.getElementById('downloadMsg').textContent = '送信エラー';
+    }
+  });
+  document.getElementById('textInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('sendTextBtn').click();
+  });
+  document.getElementById('downloadMangaBtn').addEventListener('click', async () => {
+    const msg = document.getElementById('downloadMsg');
+    try {
+      const res = await fetch(SEARCH_ENGINE_URL + '/api/url');
+      const data = await res.json();
+      const url = data.url;
+      if (!url) { msg.textContent = 'URLが取得できませんでした'; return; }
+      msg.textContent = url;
+      await fetch(SEARCH_ENGINE_URL + '/api/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url, downloadDir: DOWNLOAD_TOOL_DIR })
+      });
+      msg.textContent = 'DL指示: ' + url;
+      setTimeout(() => { msg.textContent = ''; }, 10000);
+    } catch (e) {
+      msg.textContent = 'エラー: ' + e.message;
+    }
+  });
+  document.addEventListener('keydown',(ev)=>{
+    if(overlay.classList.contains('active')){
+      const k=ev.key;
+      if(k==='Escape' || k==='Back' || k==='BrowserBack' || k==='Exit'){ ev.preventDefault(); closePlayer(); return; }
+      if(currentMode === 'manga'){
+        if(k === 'ArrowRight'){ nextManga(); ev.preventDefault(); }
+        else if(k === 'ArrowLeft'){ prevManga(); ev.preventDefault(); }
+        else if(k === ' ' || k === 'Enter'){
+          if(mangaAutoTimer) stopMangaAuto(); else { if(autoToggle.checked) startMangaAuto(); else { autoToggle.checked = true; startMangaAuto(); } }
+          ev.preventDefault();
+        }
+      } else if(currentMode === 'asmr'){
+        if(k === ' ' || k === 'Enter'){
+          if(asmrAudio){ if(asmrAudio.paused) asmrAudio.play().catch(()=>{}); else asmrAudio.pause(); }
+          ev.preventDefault();
+        }
+      } else {
+        if(k === ' '){ if(player.paused) player.play(); else player.pause(); ev.preventDefault(); updateOverlayPlayPauseLabel(); }
+      }
+      return;
+    }
+    if(currentMode === 'search') return;
+    const cards = Array.from(grid.querySelectorAll('.card'));
+    if(cards.length===0) return;
+    const cols = getCols();
+    if(ev.key==='ArrowRight'){ focusIndex(currentIndex+1); ev.preventDefault(); }
+    else if(ev.key==='ArrowLeft'){ focusIndex(currentIndex-1); ev.preventDefault(); }
+    else if(ev.key==='ArrowDown'){ focusIndex(currentIndex+cols); ev.preventDefault(); }
+    else if(ev.key==='ArrowUp'){ focusIndex(currentIndex-cols); ev.preventDefault(); }
+    else if(ev.key==='Enter' || ev.key===' '){ cards[currentIndex].click(); ev.preventDefault(); }
+    else if(ev.key==='Backspace'){ if(currentPath){ const parts=currentPath.split('/').filter(Boolean); parts.pop(); const parent = parts.length? parts.join('/') + '/' : ''; navigateTo(parent); } }
+  });
+  closeBtn.addEventListener('click', ()=>{ closePlayer(); });
+  fsBtn.addEventListener('click', ()=>{ toggleFullscreen(); });
+  overlay.addEventListener('click',(e)=>{ if(e.target===overlay) closePlayer(); });
+  overlayPrev.addEventListener('click', () => {
+    if(currentMode==='manga') prevManga();
+    else if(currentMode==='asmr'){
+      let idx = currentASMRTrackIndex - 1;
+      if(idx < 0) idx = asmrTracks.length - 1;
+      playASMRTrack(idx);
+    }
+    else if(currentMode==='video'){
+      if(currentVideoPlaylist.length > 1){
+        currentVideoPlaylistIndex = (currentVideoPlaylistIndex - 1 + currentVideoPlaylist.length) % currentVideoPlaylist.length;
+        player.src = currentVideoPlaylist[currentVideoPlaylistIndex];
+        player.play().catch(()=>{});
+        updateOverlayPlayPauseLabel();
+        showToast(`動画 ${currentVideoPlaylistIndex + 1} / ${currentVideoPlaylist.length} に切り替えました`);
+      } else {
+        try{ player.currentTime = Math.max(0, player.currentTime - 10); }catch(e){}
+      }
+    }
+    updateOverlayPlayPauseLabel();
+    flashButton(overlayPrev);
+  });
+  overlayNext.addEventListener('click', () => {
+    if(currentMode==='manga') nextManga();
+    else if(currentMode==='asmr'){
+      let idx = currentASMRTrackIndex + 1;
+      if(idx >= asmrTracks.length) idx = 0;
+      playASMRTrack(idx);
+    }
+    else if(currentMode==='video'){
+      if(currentVideoPlaylist.length > 1){
+        currentVideoPlaylistIndex = (currentVideoPlaylistIndex + 1) % currentVideoPlaylist.length;
+        player.src = currentVideoPlaylist[currentVideoPlaylistIndex];
+        player.play().catch(()=>{});
+        updateOverlayPlayPauseLabel();
+        showToast(`動画 ${currentVideoPlaylistIndex + 1} / ${currentVideoPlaylist.length} に切り替えました`);
+      } else {
+        try{ player.currentTime = Math.min(player.duration || 0, player.currentTime + 10); }catch(e){}
+      }
+    }
+    updateOverlayPlayPauseLabel();
+    flashButton(overlayNext);
+  });
+  overlayPlayPause.addEventListener('click', ()=>{
+    if(currentMode==='manga'){
+      if(mangaAutoTimer) stopMangaAuto(); else { if(!autoToggle.checked) autoToggle.checked = true; startMangaAuto(); }
+    } else if(currentMode==='asmr'){
+      if(asmrAudio){ if(asmrAudio.paused) asmrAudio.play().catch(()=>{}); else asmrAudio.pause(); }
+    } else {
+      if(player.paused) player.play().catch(()=>{}); else player.pause();
+    }
+    updateOverlayPlayPauseLabel();
+  });
+  autoToggle.addEventListener('change', ()=>{ if(autoToggle.checked) startMangaAuto(); else stopMangaAuto(); });
+  speedSelect.addEventListener('change', () => {
+    const rate = parseFloat(speedSelect.value) || 1;
+    if(currentMode === 'asmr' && asmrAudio) asmrAudio.playbackRate = rate;
+    else if(currentMode === 'video' && player) player.playbackRate = rate;
+    else if(currentMode === 'manga' && mangaAutoTimer){ stopMangaAuto(); startMangaAuto(); }
+  });
+  readerImage.addEventListener('click', ()=>{ if(currentMode==='manga') nextManga(); });
+  player.addEventListener('play', ()=> updateOverlayPlayPauseLabel());
+  player.addEventListener('pause', ()=> updateOverlayPlayPauseLabel());
+  player.addEventListener('playing', ()=> updateOverlayPlayPauseLabel());
+  asmrTrackBtn.addEventListener('click', toggleASMRPlaylist);
+  loadRecent();
+  try{
+    setMode('video');
+    await navigateTo('');
+  }catch(e){
+    console.error(e);
+    status.textContent='エラーが発生しました。コンソールを確認してください。';
+  }
+})();
+</script>
+</body>
+</html>

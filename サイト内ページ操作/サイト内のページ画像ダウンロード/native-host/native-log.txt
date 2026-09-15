@@ -1,0 +1,78 @@
+2026-07-28T10:56:29.514Z ===== native-host.js started =====
+2026-07-28T10:56:29.551Z argv: ["C:\\Program Files\\nodejs\\node.exe","I:\\サイト内のページ画像ダウンロード\\native-host\\native-host.js"]
+2026-07-28T10:56:29.583Z cwd: I:\サイト内のページ画像ダウンロード\native-host
+2026-07-28T10:56:29.618Z received chunk size: 39
+2026-07-28T10:56:29.661Z message length: 35
+2026-07-28T10:56:29.694Z message body: {"url":"https://log-lio.com/3800/"}
+2026-07-28T10:56:29.727Z url: https://log-lio.com/3800/
+2026-07-28T10:56:29.760Z appDir: I:\サイト内のページ画像ダウンロード
+2026-07-28T10:56:29.800Z electronPath: I:\サイト内のページ画像ダウンロード\node_modules\electron\dist\electron.exe
+2026-07-28T10:56:29.843Z electron exists: true
+2026-07-28T10:56:29.898Z spawned electron, pid: 9196
+2026-07-28T10:56:29.933Z sent: {"status":"started","url":"https://log-lio.com/3800/"}
+2026-07-28T10:56:43.628Z stdin end
+2026-07-28T11:01:19.459Z ===== native-host.js started =====
+2026-07-28T11:01:19.491Z argv: ["C:\\Program Files\\nodejs\\node.exe","I:\\サイト内のページ画像ダウンロード\\native-host\\native-host.js"]
+2026-07-28T11:01:19.543Z cwd: I:\サイト内のページ画像ダウンロード\native-host
+2026-07-28T11:01:19.580Z received chunk size: 41
+2026-07-28T11:01:19.632Z message length: 37
+2026-07-28T11:01:19.667Z message body: {"url":"https://log-lio.com/3771-2/"}
+2026-07-28T11:01:19.709Z url: https://log-lio.com/3771-2/
+2026-07-28T11:01:19.764Z appDir: I:\サイト内のページ画像ダウンロード
+2026-07-28T11:01:19.800Z electronPath: I:\サイト内のページ画像ダウンロード\node_modules\electron\dist\electron.exe
+2026-07-28T11:01:19.842Z electron exists: true
+2026-07-28T11:01:19.886Z spawned electron, pid: 24812
+2026-07-28T11:01:19.931Z sent: {"status":"started","url":"https://log-lio.com/3771-2/"}
+2026-07-28T11:01:36.008Z stdin end
+2026-07-28T11:02:12.469Z ===== native-host.js started =====
+2026-07-28T11:02:12.508Z argv: ["C:\\Program Files\\nodejs\\node.exe","I:\\サイト内のページ画像ダウンロード\\native-host\\native-host.js"]
+2026-07-28T11:02:12.561Z cwd: I:\サイト内のページ画像ダウンロード\native-host
+2026-07-28T11:02:12.609Z received chunk size: 39
+2026-07-28T11:02:12.638Z message length: 35
+2026-07-28T11:02:12.684Z message body: {"url":"https://log-lio.com/3767/"}
+2026-07-28T11:02:12.715Z url: https://log-lio.com/3767/
+2026-07-28T11:02:12.762Z appDir: I:\サイト内のページ画像ダウンロード
+2026-07-28T11:02:12.804Z electronPath: I:\サイト内のページ画像ダウンロード\node_modules\electron\dist\electron.exe
+2026-07-28T11:02:12.839Z electron exists: true
+2026-07-28T11:02:12.895Z spawned electron, pid: 10460
+2026-07-28T11:02:12.928Z sent: {"status":"started","url":"https://log-lio.com/3767/"}
+2026-07-28T11:02:35.358Z stdin end
+2026-07-28T11:02:43.103Z ===== native-host.js started =====
+2026-07-28T11:02:43.134Z argv: ["C:\\Program Files\\nodejs\\node.exe","I:\\サイト内のページ画像ダウンロード\\native-host\\native-host.js"]
+2026-07-28T11:02:43.168Z cwd: I:\サイト内のページ画像ダウンロード\native-host
+2026-07-28T11:02:43.214Z received chunk size: 39
+2026-07-28T11:02:43.246Z message length: 35
+2026-07-28T11:02:43.289Z message body: {"url":"https://log-lio.com/3759/"}
+2026-07-28T11:02:43.324Z url: https://log-lio.com/3759/
+2026-07-28T11:02:43.367Z appDir: I:\サイト内のページ画像ダウンロード
+2026-07-28T11:02:43.401Z electronPath: I:\サイト内のページ画像ダウンロード\node_modules\electron\dist\electron.exe
+2026-07-28T11:02:43.444Z electron exists: true
+2026-07-28T11:02:43.490Z spawned electron, pid: 20712
+2026-07-28T11:02:43.533Z sent: {"status":"started","url":"https://log-lio.com/3759/"}
+2026-07-28T11:03:05.374Z stdin end
+2026-07-28T11:09:11.987Z ===== native-host.js started =====
+2026-07-28T11:09:12.016Z argv: ["C:\\Program Files\\nodejs\\node.exe","I:\\サイト内のページ画像ダウンロード\\native-host\\native-host.js"]
+2026-07-28T11:09:12.060Z cwd: I:\サイト内のページ画像ダウンロード\native-host
+2026-07-28T11:09:12.095Z received chunk size: 58
+2026-07-28T11:09:12.137Z message length: 54
+2026-07-28T11:09:12.170Z message body: {"url":"https://www.mangalear.blog/doujinshi/290761/"}
+2026-07-28T11:09:12.224Z url: https://www.mangalear.blog/doujinshi/290761/
+2026-07-28T11:09:12.258Z appDir: I:\サイト内のページ画像ダウンロード
+2026-07-28T11:09:12.292Z electronPath: I:\サイト内のページ画像ダウンロード\node_modules\electron\dist\electron.exe
+2026-07-28T11:09:12.314Z electron exists: true
+2026-07-28T11:09:12.360Z spawned electron, pid: 11320
+2026-07-28T11:09:12.391Z sent: {"status":"started","url":"https://www.mangalear.blog/doujinshi/290761/"}
+2026-07-28T11:09:27.820Z stdin end
+2026-07-29T12:31:45.456Z ===== native-host.js started =====
+2026-07-29T12:31:45.498Z argv: ["C:\\Program Files\\nodejs\\node.exe","I:\\サイト内のページ画像ダウンロード\\native-host\\native-host.js"]
+2026-07-29T12:31:45.523Z cwd: I:\サイト内のページ画像ダウンロード\native-host
+2026-07-29T12:31:45.543Z received chunk size: 53
+2026-07-29T12:31:45.563Z message length: 49
+2026-07-29T12:31:45.589Z message body: {"url":"https://momon-ga.com/fanzine/mo3772936/"}
+2026-07-29T12:31:45.608Z url: https://momon-ga.com/fanzine/mo3772936/
+2026-07-29T12:31:45.633Z appDir: I:\サイト内のページ画像ダウンロード
+2026-07-29T12:31:45.652Z electronPath: I:\サイト内のページ画像ダウンロード\node_modules\electron\dist\electron.exe
+2026-07-29T12:31:45.677Z electron exists: true
+2026-07-29T12:31:45.706Z spawned electron, pid: 6780
+2026-07-29T12:31:45.733Z sent: {"status":"started","url":"https://momon-ga.com/fanzine/mo3772936/"}
+2026-07-29T12:32:21.770Z stdin end

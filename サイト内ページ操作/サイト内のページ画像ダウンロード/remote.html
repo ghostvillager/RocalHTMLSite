@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>リモートダウンロード（Google検索付き）</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", "Meiryo", sans-serif;
+      background: #1a1a1a;
+      color: #eee;
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+      line-height: 1.5;
+    }
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+    }
+    .section {
+      background: #222;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-bottom: 24px;
+    }
+    .section h2 {
+      font-size: 1.05rem;
+      margin-bottom: 12px;
+      color: #ccc;
+    }
+    label {
+      display: block;
+      margin: 14px 0 6px;
+      color: #aaa;
+      font-size: 13px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #555;
+      border-radius: 6px;
+      background: #2a2a2a;
+      color: #fff;
+      font-size: 14px;
+    }
+    button {
+      padding: 11px 22px;
+      border: none;
+      border-radius: 6px;
+      background: #ff453a;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+    button:hover { background: #d70015; }
+    button:disabled { background: #555; cursor: not-allowed; }
+
+    #downloadResult {
+      margin-top: 14px;
+      padding: 12px 14px;
+      background: #111;
+      border-radius: 6px;
+      font-size: 13px;
+      min-height: 40px;
+      white-space: pre-wrap;
+      color: #ccc;
+    }
+
+    /* Google検索結果の見た目を少し調整 */
+    .gsc-control-cse {
+      background-color: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+    .gsc-input-box {
+      background: #2a2a2a !important;
+      border: 1px solid #555 !important;
+      border-radius: 6px !important;
+    }
+    .gsc-search-button-v2 {
+      background: #0a84ff !important;
+      border: none !important;
+      border-radius: 6px !important;
+    }
+    .gs-title, .gs-title b {
+      color: #6db3f2 !important;
+    }
+    .gs-snippet {
+      color: #aaa !important;
+    }
+    .gsc-result {
+      border-bottom: 1px solid #333 !important;
+      padding: 10px 0 !important;
+    }
+
+    .note {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #777;
+      line-height: 1.6;
+    }
+  </style>
+
+  <!-- Google Programmable Search Engine -->
+  <script async src="https://cse.google.com/cse.js?cx=b2df63a6850f14dc3"></script>
+</head>
+<body>
+
+  <h1>リモート画像ダウンロード</h1>
+
+  <!-- ① Google検索部分 -->
+  <div class="section">
+    <h2>① 検索</h2>
+    <div class="gcse-search"></div>
+    <p class="note" style="margin-top:12px;">
+      検索結果のリンクを右クリック →「リンクアドレスをコピー」して、<br>
+      下のURL欄に貼り付けてください。
+    </p>
+  </div>
+
+  <!-- ② ダウンロード指示部分 -->
+  <div class="section">
+    <h2>② ダウンロード指示</h2>
+
+    <label>ダウンロードしたいページのURL</label>
+    <input type="text" id="targetUrl" placeholder="ここにURLを貼り付け...">
+
+    <label>トークン（Electron起動時に表示されるもの）</label>
+    <input type="text" id="token" placeholder="トークンを貼り付け">
+
+    <label>APIの公開URL（3456番のcloudflared URL）</label>
+    <input type="text" id="apiBase" placeholder="https://xxxx.trycloudflare.com">
+
+    <button id="sendBtn" onclick="sendDownload()">このURLをダウンロード</button>
+
+    <div id="downloadResult">ここに結果が表示されます</div>
+  </div>
+
+  <div class="note">
+    ・先にElectron側で保存先フォルダを選択しておく必要があります<br>
+    ・トークンは config.json またはElectron起動時のログに書かれています<br>
+    ・検索結果から直接「選択」ボタンは付けられないため、URLをコピーして貼る運用になります
+  </div>
+
+  <script>
+    async function sendDownload() {
+      const url = document.getElementById('targetUrl').value.trim();
+      const token = document.getElementById('token').value.trim();
+      let apiBase = document.getElementById('apiBase').value.trim();
+
+      if (!url || !token || !apiBase) {
+        alert('URL・トークン・API URLをすべて入力してください');
+        return;
+      }
+
+      apiBase = apiBase.replace(/\/$/, '');
+      const btn = document.getElementById('sendBtn');
+      const resultEl = document.getElementById('downloadResult');
+
+      btn.disabled = true;
+      resultEl.textContent = '送信中...';
+      resultEl.style.color = '#ccc';
+
+      try {
+        const res = await fetch(apiBase + '/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, token })
+        });
+
+        const data = await res.json();
+        resultEl.textContent = JSON.stringify(data, null, 2);
+        resultEl.style.color = data.success ? '#4caf50' : '#ff6b6b';
+      } catch (err) {
+        resultEl.textContent = '通信エラー: ' + err.message;
+        resultEl.style.color = '#ff6b6b';
+      }
+
+      btn.disabled = false;
+    }
+  </script>
+</body>
+</html>
