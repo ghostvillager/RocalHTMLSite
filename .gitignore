@@ -11,5 +11,35 @@ Desktop.ini
 *.log
 .cache/
 
-# optional: ignore huge image dumps if they should not live in git
-# サイト内のページ画像ダウンロード/
+# media folders
+ASMR/
+mp4/
+
+# images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.bmp
+*.tif
+*.tiff
+*.ico
+*.svg
+*.avif
+*.heic
+
+# videos / audio
+*.mp4
+*.webm
+*.mkv
+*.avi
+*.mov
+*.wmv
+*.m4v
+*.mp3
+*.wav
+*.flac
+*.m4a
+*.aac
+*.ogg
