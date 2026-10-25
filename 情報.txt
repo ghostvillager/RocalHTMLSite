@@ -1,0 +1,81 @@
+
+
+
+==== Physical Disks (WMIC) ====
+
+
+InterfaceType=USB
+MediaType=External hard disk media
+Model=BUFFALO External HDD USB Device
+SerialNumber=00003D010000B77E
+Size=1000202273280
+Status=OK
+
+
+InterfaceType=IDE
+MediaType=Fixed hard disk media
+Model=TOSHIBA MQ01ABD100
+SerialNumber=AA000000000000000096
+Size=1024203640320
+Status=OK
+
+
+
+==== Detailed Results ====
+
+==== Logical Drives & Speed Tests ====
+
+Drive C:
+  Volume Name : TIH0235200E
+  File System : NTFS
+  Total       : 649.85 GB
+  Free        : 195.32 GB
+  Used        : 454.52 GB  (69.9%)
+
+  --- Speed Test (512 MB) ---
+  Write :    404.4 MB/s   (1.27 sec)
+  Read  :  3,466.0 MB/s   (0.15 sec)
+
+Drive G:
+  Volume Name : Google Drive
+  File System : FAT32
+  Total       : 15.00 GB
+  Free        : 0 B
+  Used        : 15.00 GB  (100%)
+
+  --- Speed Test (128 MB) ---
+  ERROR : Exception calling "Create" with "1" argument(s): "Could not find a part of the path 'G:\SpeedTest_Temp\speedtest_2342d552f50344a5bf1d01ebf608caae.bin'."
+
+Drive W:
+  Volume Name : �{�����[��
+  File System : NTFS
+  Total       : 931.50 GB
+  Free        : 872.79 GB
+  Used        : 58.71 GB  (6.3%)
+
+  --- Speed Test (512 MB) ---
+  Write :     37.6 MB/s   (13.60 sec)
+  Read  :  3,585.8 MB/s   (0.14 sec)
+
+==== Physical Disks ====
+
+Model        : BUFFALO External HDD USB Device
+  Interface  : USB
+  Media Type : External hard disk media
+  Size       : 931.51 GB
+  Status     : OK
+  Serial     : 00003D010000B77E
+
+Model        : TOSHIBA MQ01ABD100
+  Interface  : IDE
+  Media Type : Fixed hard disk media
+  Size       : 953.86 GB
+  Status     : OK
+  Serial     : AA000000000000000096
+
+==== Notes ====
+- Test files are created under SpeedTest_Temp and fully deleted after the test.
+- If C: still fails, run the bat as Administrator.
+- SSD sequential is often 200+ MB/s, HDD often 80-180 MB/s.
+
+Press any key to continue . . .

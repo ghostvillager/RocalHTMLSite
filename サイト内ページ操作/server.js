@@ -8,236 +8,240 @@ const { exec } = require('child_process');
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
-const { spawn } = require('child_process');
 
-// JSONを受け取れるようにする
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
-// CORSを許可（file:// や他のオリジンからでもアクセス可能にする）
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
 
 let browser, page;
 let isStreaming = false;
+let viewport = { width: 1280, height: 720 };
+let busy = Promise.resolve();
+let latestMove = null;
+let moveTimer = null;
+let lastCaret = null;
+
+function withPage(fn) {
+  const run = busy.then(fn, fn);
+  busy = run.then(() => {}, () => {});
+  return run;
+}
+
+function broadcast(obj) {
+  const message = JSON.stringify(obj);
+  wss.clients.forEach(client => {
+    if (client.readyState === 1) client.send(message);
+  });
+}
 
 async function startBrowser() {
-  try {
-    console.log('ブラウザを起動中...');
-    browser = await chromium.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--window-size=1280,720'
-      ]
-    });
+  browser = await chromium.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--force-device-scale-factor=1']
+  });
+  const context = await browser.newContext({ viewport, deviceScaleFactor: 1 });
+  page = await context.newPage();
+  await page.goto('https://duckduckgo.com', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  startStreaming();
+}
 
-    const context = await browser.newContext({
-      viewport: { width: 1280, height: 720 }
-    });
+async function readCaret() {
+  if (!page) return null;
+  return page.evaluate(() => {
+    const el = document.activeElement;
+    if (!el || el === document.body || el === document.documentElement) return null;
+    const field = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable;
+    if (!field) return null;
+    const r = el.getBoundingClientRect();
+    const style = getComputedStyle(el);
+    const fontSize = parseFloat(style.fontSize) || 16;
+    const lineHeight = parseFloat(style.lineHeight) || fontSize * 1.4;
+    const padL = parseFloat(style.paddingLeft) || 0;
+    const padT = parseFloat(style.paddingTop) || 0;
+    let x = r.left + padL + 2;
+    let y = r.top + Math.max(2, (r.height - lineHeight) / 2);
+    let h = Math.max(16, Math.min(lineHeight, r.height - 4));
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      const start = el.selectionStart == null ? (el.value || '').length : el.selectionStart;
+      const probe = document.createElement('canvas').getContext('2d');
+      probe.font = style.fontStyle + ' ' + style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
+      const before = (el.value || '').slice(0, start);
+      x = r.left + padL + probe.measureText(before.split('\n').pop()).width - (el.scrollLeft || 0) + 1;
+      if (el.tagName === 'TEXTAREA') {
+        y = r.top + padT + (before.split('\n').length - 1) * lineHeight - (el.scrollTop || 0);
+      }
+    }
+    return { x: Math.round(x), y: Math.round(y), h: Math.round(h) };
+  }).catch(() => null);
+}
 
-    page = await context.newPage();
-    console.log('ページを作成しました');
-
-    await page.goto('https://duckduckgo.com', { waitUntil: 'domcontentloaded', timeout: 30000 });
-    console.log('初期ページを開きました:', page.url());
-
-    console.log('準備完了');
-    startStreaming();
-  } catch (err) {
-    console.error('ブラウザ起動エラー:', err);
-  }
+async function paintCaret(caret, on) {
+  if (!page) return;
+  await page.evaluate(({ caret, on }) => {
+    let el = document.getElementById('__localCaret');
+    if (!caret || !on) {
+      if (el) el.style.display = 'none';
+      return;
+    }
+    if (!el) {
+      el = document.createElement('div');
+      el.id = '__localCaret';
+      el.style.cssText = 'position:fixed;width:2px;background:#111;z-index:2147483647;pointer-events:none;box-shadow:0 0 0 1px #fff;';
+      document.documentElement.appendChild(el);
+    }
+    el.style.display = 'block';
+    el.style.left = caret.x + 'px';
+    el.style.top = caret.y + 'px';
+    el.style.height = caret.h + 'px';
+  }, { caret, on }).catch(() => {});
 }
 
 async function startStreaming() {
   if (isStreaming) return;
   isStreaming = true;
-  console.log('スクリーンショットストリーミング開始');
-
+  let tick = 0;
   while (isStreaming) {
     try {
-      if (wss.clients.size > 0) {
-        const buffer = await page.screenshot({
-          type: 'jpeg',
-          quality: 45,
-          timeout: 5000
-        });
-        const base64 = buffer.toString('base64');
-        const message = JSON.stringify({ type: 'frame', data: base64 });
-
-        wss.clients.forEach(client => {
-          if (client.readyState === 1) {
-            client.send(message);
+      if (wss.clients.size > 0 && page) {
+        await withPage(async () => {
+          if (latestMove) {
+            const m = latestMove;
+            latestMove = null;
+            await page.mouse.move(m.x, m.y);
           }
+          tick++;
+          const show = tick % 8 < 5;
+          if (lastCaret) await paintCaret(lastCaret, show);
+          const buffer = await page.screenshot({ type: 'jpeg', quality: 55, timeout: 4000 });
+          broadcast({ type: 'frame', data: buffer.toString('base64'), w: viewport.width, h: viewport.height, caret: show ? lastCaret : null });
         });
       }
-    } catch (e) {
-      // 無視
-    }
-    await new Promise(r => setTimeout(r, 120));
+    } catch (e) {}
+    await new Promise(r => setTimeout(r, 70));
   }
 }
 
+function clamp(n, max) {
+  return Math.max(0, Math.min(max - 1, Math.round(n || 0)));
+}
+
+async function applyClick(x, y, button) {
+  x = clamp(x, viewport.width);
+  y = clamp(y, viewport.height);
+  await page.mouse.move(x, y);
+  await page.mouse.down({ button: button || 'left' });
+  await page.mouse.up({ button: button || 'left' });
+  lastCaret = await readCaret();
+  if (!lastCaret) lastCaret = { x: x, y: y - 10, h: 18 };
+  await paintCaret(lastCaret, true);
+  broadcast({ type: 'caret', caret: lastCaret });
+}
+
 wss.on('connection', (ws) => {
-  console.log('クライアントが接続しました (現在の接続数:', wss.clients.size, ')');
-
-  ws.on('message', async (msg) => {
-    try {
-      const data = JSON.parse(msg.toString());
-
-      if (data.type === 'mouse') {
-        if (data.action === 'move') {
-          await page.mouse.move(data.x, data.y);
-        } else if (data.action === 'down') {
-          await page.mouse.down({ button: data.button || 'left' });
-        } else if (data.action === 'up') {
-          await page.mouse.up({ button: data.button || 'left' });
-        } else if (data.action === 'wheel') {
-          await page.mouse.wheel(0, data.deltaY || 0);
-        } else if (data.action === 'back') {
-          await page.goBack({ timeout: 3000 }).catch(() => {});
-        } else if (data.action === 'forward') {
-          await page.goForward({ timeout: 3000 }).catch(() => {});
-        }
-      }
-
-      if (data.type === 'keyboard') {
-        if (data.action === 'down') {
-          await page.keyboard.down(data.key);
-        } else if (data.action === 'up') {
-          await page.keyboard.up(data.key);
-        }
-      }
-
-      if (data.type === 'type') {
-        await page.keyboard.insertText(data.text);
-      }
-    } catch (e) {
-      console.error('入力エラー:', e.message);
+  ws.send(JSON.stringify({ type: 'hello', w: viewport.width, h: viewport.height, caret: lastCaret }));
+  ws.on('message', (msg) => {
+    let data;
+    try { data = JSON.parse(msg.toString()); } catch (e) { return; }
+    if (data.type === 'viewport') {
+      withPage(async () => {
+        const width = Math.max(640, Math.min(1920, Math.round(data.width || 1280)));
+        const height = Math.max(400, Math.min(1400, Math.round(data.height || 720)));
+        if (width === viewport.width && height === viewport.height) return;
+        viewport = { width, height };
+        await page.setViewportSize(viewport);
+      });
+      return;
     }
-  });
-
-  ws.on('close', () => {
-    console.log('クライアントが切断しました');
-  });
-});
-
-// 現在のURLを取得
-app.get('/api/url', async (req, res) => {
-  try {
-    const url = page ? page.url() : '';
-    res.json({ url });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// 戻る
-app.post('/api/back', async (req, res) => {
-  try {
-    await page.goBack({ timeout: 3000 }).catch(() => {});
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// 進む
-app.post('/api/forward', async (req, res) => {
-  try {
-    await page.goForward({ timeout: 3000 }).catch(() => {});
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// スクロール
-app.post('/api/scroll', async (req, res) => {
-  try {
-    const { direction, amount = 300 } = req.body || {};
-    if (direction === 'up') {
-      await page.mouse.wheel(0, -amount);
-    } else {
-      await page.mouse.wheel(0, amount);
-    }
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// テキスト入力（日本語対応）
-app.post('/api/type', async (req, res) => {
-  try {
-    const { text } = req.body || {};
-    if (text) {
-      await page.keyboard.insertText(text);
-    }
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// エロ漫画ダウンロード指示
-app.post('/api/download', async (req, res) => {
-  try {
-    const { url, downloadDir } = req.body || {};
-    if (!url) {
-      return res.status(400).json({ error: 'URLがありません' });
-    }
-
-    console.log('===== 環境確認 =====');
-    console.log('ComSpec:', process.env.ComSpec);
-    console.log('SystemRoot:', process.env.SystemRoot);
-    console.log('PATH の一部:', (process.env.PATH || '').substring(0, 200));
-    console.log('cwd:', process.cwd());
-    console.log('====================');
-
-    const targetDir = 'C:\\RocalHTMLSite\\サイト内ページ操作\\サイト内のページ画像ダウンロード';
-    console.log('ダウンロード指示を受信:', url);
-    console.log('実行フォルダ:', targetDir);
-
-    const { exec } = require('child_process');
-
-    // フルパスで cmd.exe を指定して試す
-    const cmdPath = process.env.ComSpec || 'C:\\Windows\\System32\\cmd.exe';
-    const fullCmd = `"${cmdPath}" /c npm start -- --download="${url}"`;
-
-    console.log('実行コマンド:', fullCmd);
-
-    exec(fullCmd, {
-      cwd: targetDir,
-      windowsHide: false,
-      env: process.env
-    }, (error, stdout, stderr) => {
-      if (error) {
-        console.error('実行エラー:', error.message);
+    if (data.type === 'mouse') {
+      const x = clamp(data.x, viewport.width);
+      const y = clamp(data.y, viewport.height);
+      if (data.action === 'move') {
+        latestMove = { x, y };
         return;
       }
-      if (stderr) console.error('stderr:', stderr);
-      console.log('stdout:', stdout);
-    });
+      if (data.action === 'click' || data.action === 'down') {
+        latestMove = null;
+        withPage(() => applyClick(x, y, data.button || 'left'));
+        return;
+      }
+      if (data.action === 'wheel') {
+        withPage(async () => {
+          await page.mouse.move(x, y);
+          await page.mouse.wheel(0, data.deltaY || 0);
+        });
+        return;
+      }
+      if (data.action === 'back') withPage(() => page.goBack({ timeout: 4000 }).catch(() => {}));
+      if (data.action === 'forward') withPage(() => page.goForward({ timeout: 4000 }).catch(() => {}));
+      return;
+    }
+    if (data.type === 'keyboard') {
+      withPage(async () => {
+        if (data.action === 'down') await page.keyboard.down(data.key);
+        else if (data.action === 'up') await page.keyboard.up(data.key);
+        lastCaret = await readCaret();
+        if (lastCaret) {
+          await paintCaret(lastCaret, true);
+          broadcast({ type: 'caret', caret: lastCaret });
+        }
+      });
+      return;
+    }
+    if (data.type === 'type') {
+      withPage(async () => {
+        if (data.text) await page.keyboard.insertText(data.text);
+        lastCaret = await readCaret();
+        if (lastCaret) {
+          await paintCaret(lastCaret, true);
+          broadcast({ type: 'caret', caret: lastCaret });
+        }
+      });
+    }
+  });
+});
 
-    res.json({ ok: true, message: 'ダウンロード指示を送りました', url });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
-  }
+app.get('/api/url', async (req, res) => {
+  try { res.json({ url: page ? page.url() : '' }); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/back', (req, res) => { withPage(() => page.goBack({ timeout: 4000 }).catch(() => {})); res.json({ ok: true }); });
+app.post('/api/forward', (req, res) => { withPage(() => page.goForward({ timeout: 4000 }).catch(() => {})); res.json({ ok: true }); });
+app.post('/api/scroll', (req, res) => {
+  const { direction, amount = 300 } = req.body || {};
+  withPage(() => page.mouse.wheel(0, direction === 'up' ? -amount : amount));
+  res.json({ ok: true });
+});
+app.post('/api/type', (req, res) => {
+  const { text } = req.body || {};
+  if (text) withPage(async () => { await page.keyboard.insertText(text); lastCaret = await readCaret(); broadcast({ type: 'caret', caret: lastCaret }); });
+  res.json({ ok: true });
+});
+app.post('/api/viewport', (req, res) => {
+  const { width, height } = req.body || {};
+  withPage(async () => {
+    viewport = { width: Math.max(640, Math.min(1920, Math.round(width || 1280))), height: Math.max(400, Math.min(1400, Math.round(height || 720))) };
+    await page.setViewportSize(viewport);
+  });
+  res.json({ ok: true });
+});
+app.post('/api/download', (req, res) => {
+  const { url } = req.body || {};
+  if (!url) return res.status(400).json({ error: 'URLがありません' });
+  const targetDir = 'C:\\RocalHTMLSite\\サイト内ページ操作\\サイト内のページ画像ダウンロード';
+  const cmdPath = process.env.ComSpec || 'C:\\Windows\\System32\\cmd.exe';
+  exec(`"${cmdPath}" /c npm start -- --download="${url}"`, { cwd: targetDir, windowsHide: false, env: process.env });
+  res.json({ ok: true, url });
 });
 
 const PORT = 3000;
-server.listen(PORT, async () => {
-  console.log(`サーバー起動: http://localhost:${PORT}`);
-  await startBrowser();
+server.listen(PORT, '0.0.0.0', async () => {
+  console.log('サーバー起動: http://localhost:' + PORT);
+  try { await startBrowser(); console.log('準備完了'); }
+  catch (err) { console.error('ブラウザ起動エラー:', err); }
 });

@@ -1,0 +1,55 @@
+[23:04:48] [sys] Node コマンド: C:\Program Files\nodejs\npm.CMD
+[23:04:50] [eroge] Eroge を起動します…
+[23:04:50] [eroge] Eroge 起動完了 (pid=3508)
+[23:04:50] [http] Shelf HTTP を起動します…
+[23:04:50] [http] Shelf HTTP 起動完了 (pid=3828)
+[23:04:50] [node] Node を起動します…
+[23:04:50] [node] Node 起動完了 (pid=4652)
+[23:04:50] [cf] Cloudflare を起動します…
+[23:04:50] [cf] Cloudflare 起動完了 (pid=2088)
+[23:04:50] [node] > remote-browser@1.0.0 start
+[23:04:50] [node] > node server.js
+[23:04:50] [sys] Eroge 準備完了 (port 8765) - 1s
+[23:04:50] [cf] 2026-10-09T14:04:50Z INF Thank you for trying Cloudflare Tunnel. Doing so, without a Cloudflare account, is a quick way to experiment and try it out. However, be aware that these account-less Tunnels have no uptime guarantee, are subject to the Cloudflare Online Services Terms of Use (https://www.cloudflare.com/website-terms/), and Cloudflare reserves the right to investigate your use of Tunnels for violations of such terms. If you intend to use Tunnels in production you should use a pre-created named tunnel by following: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps
+[23:04:50] [cf] 2026-10-09T14:04:50Z INF Requesting new quick Tunnel on trycloudflare.com...
+[23:04:50] [node] node:events:486
+[23:04:50] [node]       throw er; // Unhandled 'error' event
+[23:04:50] [node]       ^
+[23:04:50] [node] Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+[23:04:50] [node]     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+[23:04:50] [node]     at listenInCluster (node:net:1997:12)
+[23:04:50] [node]     at node:net:2206:7
+[23:04:50] [node]     at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+[23:04:50] [node] Emitted 'error' event on WebSocketServer instance at:
+[23:04:50] [node]     at Server.emit (node:events:508:28)
+[23:04:50] [node]     at emitErrorNT (node:net:1976:8)
+[23:04:50] [node]     at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+[23:04:50] [node]   code: 'EADDRINUSE',
+[23:04:50] [node]   errno: -4091,
+[23:04:50] [node]   syscall: 'listen',
+[23:04:50] [node]   address: '0.0.0.0',
+[23:04:50] [node]   port: 3000
+[23:04:50] [node] }
+[23:04:50] [node] Node.js v24.13.1
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF +--------------------------------------------------------------------------------------------+
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF |  https://jazz-papua-reads-mia.trycloudflare.com                                            |
+[23:04:54] [sys] Cloudflare URL: https://jazz-papua-reads-mia.trycloudflare.com
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF +--------------------------------------------------------------------------------------------+
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF Cannot determine default configuration path. No file [config.yml config.yaml] in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp]
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF Version 2025.8.1 (Checksum b5d598b00cc3a28cabc5812d9f762819334614bae452db4e7f23eefe7b081556)
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF GOOS: windows, GOVersion: go1.24.2, GoArch: amd64
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF Settings: map[ha-connections:1 protocol:quic url:http://localhost:8000]
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF cloudflared will not automatically update on Windows systems.
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF Generated Connector ID: 827c218f-cf97-49bf-b05d-c1fca487ba4d
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF Initial protocol quic
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF ICMP proxy will use 192.168.1.12 as source for IPv4
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF ICMP proxy will use 240b:12:9b20:c00:c355:990:4a87:37e7 in zone Wi-Fi as source for IPv6
+[23:04:54] [cf] 2026-10-09T14:04:54Z ERR Cannot determine default origin certificate path. No file cert.pem in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp]. You need to specify the origin certificate path by specifying the origincert option in the configuration file, or set TUNNEL_ORIGIN_CERT environment variable originCertPath=
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF cloudflared does not support loading the system root certificate pool on Windows. Please use --origin-ca-pool <PATH> to specify the path to the certificate pool
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF ICMP proxy will use 192.168.1.12 as source for IPv4
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.192.27
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF ICMP proxy will use 240b:12:9b20:c00:c355:990:4a87:37e7 in zone Wi-Fi as source for IPv6
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF Starting metrics server on 127.0.0.1:56622/metrics
+[23:04:54] [cf] 2026-10-09T14:04:54Z INF Registered tunnel connection connIndex=0 connection=ad466317-f105-450d-9a8e-ac530b2e10f4 event=0 ip=198.41.192.27 location=nrt01 protocol=quic
+[23:04:58] [sys] ブラウザで開きました: http://192.168.1.12:8000

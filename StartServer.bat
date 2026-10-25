@@ -81,8 +81,6 @@ timeout /t 2 >nul
 
 REM ===== Cloudflare Tunnel 起動 =====
 start "" cloudflared tunnel --url http://localhost:%PORT%
-REM ===== Node.js サーバー起動 =====
-start "" cmd /c "cd /d C:\RocalHTMLSite\サイト内ページ操作 && npm start"
 REM ===== 後始末 =====
 popd
 endlocal

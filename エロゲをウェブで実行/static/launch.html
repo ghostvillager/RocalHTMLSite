@@ -1,0 +1,28 @@
+<!doctype html>
+<meta charset="utf-8">
+<button id="go">起動</button>
+<iframe id="view" allow="fullscreen; gamepad; autoplay"
+        style="width:1280px;height:720px;border:0;display:none"></iframe>
+<script>
+const go = document.getElementById("go");
+const view = document.getElementById("view");
+let timer;
+
+function back() {
+  clearInterval(timer);
+  view.src = "about:blank";
+  view.style.display = "none";
+  go.style.display = "inline-block";
+}
+
+go.onclick = () => {
+  go.style.display = "none";
+  view.style.display = "block";
+  view.src = "/stream.html?hostId=2099713374&appId=1331783342&fps=60&videoSize=1080p&transport=websocket";
+  timer = setInterval(() => {
+    let text = "";
+    try { text = view.contentDocument.body.innerText; } catch (e) { return; }
+    if (text.includes("Web Socket Closed") || text.includes("termination")) back();
+  }, 500);
+};
+</script>

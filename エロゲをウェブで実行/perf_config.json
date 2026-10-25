@@ -1,0 +1,6 @@
+{
+  "prefer_cloudflare": true,
+  "external_stream_use_cf": true,
+  "eroge_poll_interval_ms": 2000,
+  "buttons_poll_interval_ms": 2000
+}

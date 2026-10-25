@@ -1,0 +1,78 @@
+=== 対象フォルダ数: 207 ===
+既存の buttons.json を使用（207 件） / FORCE_RECOLLECT=False
+既存の web-server.exe を終了しています...
+http://0.0.0.0:8765/  (他端末からはこのPCのIP:8765/ でアクセス)
+2026-10-10T08:33:29.957850Z  INFO actix_server::builder: starting 8 workers
+2026-10-10T08:33:29.958373Z  INFO actix_server::server: Actix runtime found; starting in Actix runtime
+2026-10-10T08:33:29.958763Z  INFO actix_server::server: starting service: "actix-web-service-0.0.0.0:8090", workers: 8, listening on: 0.0.0.0:8090
+select -> 初回exe選択 + 配信開始 (3days)
+exe_pick: ダミー SELECTED → __PICKING__:3days -満ちてゆく刻の彼方で-
+2026-10-10T08:33:32.189576Z  WARN tracing_actix_web::middleware: Error encountered while processing the incoming HTTP request: SessionTokenNotFound
+exe_pick: ダイアログ表示 — Z:\3days
+2026-10-10T08:33:38.146488Z  INFO start_host{request=
+HttpRequest HTTP/1.1 GET:/api/host/stream
+  headers:
+    "sec-websocket-version": "13"
+    "pragma": "no-cache"
+    "cache-control": "no-cache"
+    "sec-websocket-extensions": "permessage-deflate; client_max_window_bits"
+    "sec-websocket-key": "l+C+0qRCqY5nWj+6u/sRig=="
+    "connection": "Upgrade"
+    "accept-language": "ja,en;q=0.9,en-GB;q=0.8,en-US;q=0.7,ja-JP;q=0.6"
+    "origin": "http://192.168.1.12:8090"
+    "host": "192.168.1.12:8090"
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
+    "upgrade": "websocket"
+    "accept-encoding": "gzip, deflate"
+    "cookie": "*redacted*"
+ user_id=778737394}: web_server::api::stream: close time.busy=144µs time.idle=38.9µs
+2026-10-10T08:33:39.141679Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:39.141534Z  INFO streamer: Got Permissions: StreamPermissions { allow_add_hosts: true, maximum_bitrate_kbps: None, allow_codec_h264: true, allow_codec_h265: true, allow_codec_av1: true, allow_hdr: true, allow_transport_webrtc: true, allow_transport_websockets: true }
+2026-10-10T08:33:40.095125Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:40.094994Z  INFO streamer: Trying WebRTC transport
+2026-10-10T08:33:40.415625Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:40.415455Z  INFO streamer: Applied permissions to settings
+2026-10-10T08:33:40.416985Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:40.415595Z  INFO streamer: Starting Moonlight stream with settings: StreamSettings { bitrate_kbps: 10000, width: 1920, height: 1080, fps: 60, play_audio_local: false, supported_codecs: 1, hdr: false }
+2026-10-10T08:33:41.746442Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:41.746344Z  INFO moonlight: RTSP port: 48010
+2026-10-10T08:33:41.747386Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:41.746369Z  INFO moonlight: Initializing platform...
+2026-10-10T08:33:41.750667Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:41.750581Z  INFO moonlight: WLAN interface 0 is now in low latency mode
+2026-10-10T08:33:41.751968Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:41.750653Z  INFO moonlight: done
+2026-10-10T08:33:41.753017Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:41.750660Z  INFO moonlight: Resolving host name...
+2026-10-10T08:33:43.811116Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.810926Z  INFO moonlight: connect() failed: 10061
+2026-10-10T08:33:43.821634Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.821401Z  INFO moonlight: done
+2026-10-10T08:33:43.822986Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.821443Z  INFO moonlight: Packet size capped at 1024 bytes for remote IPv4 streaming
+2026-10-10T08:33:43.824627Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.821458Z  INFO moonlight: Initializing audio stream...
+2026-10-10T08:33:43.826995Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.821513Z  INFO moonlight: done
+2026-10-10T08:33:43.828594Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.821558Z  INFO moonlight: Starting RTSP handshake...
+2026-10-10T08:33:43.846111Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.845909Z  INFO moonlight: Reference frame invalidation is not supported by this host
+2026-10-10T08:33:43.857803Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.857612Z  INFO moonlight: Audio port: 48000
+2026-10-10T08:33:43.858995Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.858898Z  INFO moonlight: Video port: 47998
+2026-10-10T08:33:43.861157Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.859765Z  INFO moonlight: Control port: 47999
+2026-10-10T08:33:43.934959Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.934882Z  INFO moonlight: done
+2026-10-10T08:33:43.938149Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.934910Z  INFO moonlight: Initializing control stream...
+2026-10-10T08:33:43.952114Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.934934Z  INFO moonlight: done
+2026-10-10T08:33:43.958323Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.934941Z  INFO moonlight: Initializing video stream...
+2026-10-10T08:33:43.964629Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.934959Z  INFO moonlight: done
+2026-10-10T08:33:43.966316Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.934967Z  INFO moonlight: Initializing input stream...
+2026-10-10T08:33:43.969203Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.934979Z  INFO moonlight: done
+2026-10-10T08:33:43.974352Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.935001Z  INFO moonlight: Starting control stream...
+2026-10-10T08:33:43.978031Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.936577Z  INFO moonlight: done
+2026-10-10T08:33:43.981531Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.941663Z  INFO moonlight: Starting video stream...
+2026-10-10T08:33:43.985811Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.950952Z  INFO moonlight: Server notified termination reason: 0x80030023
+2026-10-10T08:33:43.988972Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.951021Z  INFO streamer::transport::webrtc::video: [Stream] Stream setup: 1920x1080x60 and H264
+2026-10-10T08:33:43.991462Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.956672Z  INFO moonlight: done
+2026-10-10T08:33:43.993123Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.958365Z  INFO moonlight: Starting audio stream...
+2026-10-10T08:33:43.994610Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.958667Z  INFO moonlight: done
+2026-10-10T08:33:43.998627Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.964551Z  INFO moonlight: Starting input stream...
+2026-10-10T08:33:44.000363Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.964832Z  INFO moonlight: done
+2026-10-10T08:33:44.004638Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.965490Z  INFO webrtc::peer_connection: peer connection state changed: closed
+2026-10-10T08:33:44.006344Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.974436Z  INFO moonlight: Failed to send ENet control packet
+2026-10-10T08:33:44.008992Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.974483Z  INFO moonlight: Input: sendInputPacketOnControlStream() failed: -1
+2026-10-10T08:33:44.010840Z  INFO web_server::api::stream: [Ipc]: ipc receiver is closed
+2026-10-10T08:33:44.011847Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.985773Z  INFO streamer: Stream uses these settings: H264 with 1920x1080x60
+2026-10-10T08:33:44.013069Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:43.985817Z  WARN streamer: No transport found after starting stream. Requesting Termination
+2026-10-10T08:33:44.052102Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:44.052013Z  INFO moonlight: Failed to send ENet control packet
+2026-10-10T08:33:44.052629Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:44.052037Z  INFO moonlight: Loss Stats: Transaction failed: 6
+clear_selected: selected.txt 削除
+exe_pick cancel sunshine error: HTTP Error 401: Unauthorized
+exe_pick: キャンセル
+2026-10-10T08:33:53.967929Z  INFO ipc{child_id=0}: common::ipc: 2026-10-10T08:33:53.967697Z  INFO streamer: Terminating Self
+2026-10-10T08:33:54.022320Z  INFO ipc{child_id=0}: web_server::api::stream: close time.busy=0.00ns time.idle=14.9s
+=== 対象フォルダ数: 207 ===

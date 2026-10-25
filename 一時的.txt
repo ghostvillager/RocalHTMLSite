@@ -1,0 +1,22 @@
+[01:34:41] [sys] 子プロセス用 Python: C:\Python\python.EXE
+[01:34:41] [sys] Node コマンド: C:\Program Files\nodejs\npm.CMD
+[01:34:41] [sys] ========== 起動シーケンス開始 ==========
+[01:34:42] [sys] port 3000 を使用中のプロセスを終了しました: PID [3256]
+[01:34:42] [sys] --- [1/4] Eroge (launch.py) を起動 ---
+[01:34:42] [eroge] Eroge を起動します…
+[01:34:42] [eroge] Eroge 起動完了 (pid=15496)
+[01:34:42] [sys] Eroge (launch.py): port 8765 の開放を待機中… (最大 90s)
+[01:34:49] [sys] Eroge (launch.py): まだ待機中… (5s / 90s)
+[01:34:56] [sys] Eroge (launch.py): まだ待機中… (10s / 90s)
+[01:35:03] [sys] Eroge (launch.py): まだ待機中… (15s / 90s)
+[01:35:10] [sys] Eroge (launch.py): まだ待機中… (20s / 90s)
+[01:35:17] [sys] Eroge (launch.py): まだ待機中… (25s / 90s)
+[01:35:24] [sys] Eroge (launch.py): まだ待機中… (30s / 90s)
+[01:35:31] [sys] Eroge (launch.py): まだ待機中… (35s / 90s)
+[01:35:38] [sys] Eroge (launch.py): まだ待機中… (40s / 90s)
+[01:35:45] [sys] Eroge (launch.py): まだ待機中… (45s / 90s)
+[01:35:52] [sys] Eroge (launch.py): まだ待機中… (50s / 90s)
+[01:35:59] [sys] Eroge (launch.py): まだ待機中… (55s / 90s)
+[01:36:06] [sys] Eroge (launch.py): まだ待機中… (60s / 90s)
+[01:36:13] [sys] Eroge (launch.py): まだ待機中… (65s / 90s)
+[01:36:20] [sys] Eroge (launch.py): まだ待機中… (70s / 90s)
