@@ -4,7 +4,7 @@ Shelf + Eroge 統合ランチャー
 - シングルインスタンスロック（mutex）
 - システムトレイ（インジケーター）収納
 - トレイアイコンクリックで表示/非表示トグル
-- ×ボタン・最小化は必ずインジケーターへ収納（終了はトレイメニューのみ）
+- ×ボタンでプログラム終了、最小化（-）は通常のタスクバー最小化。トレイからも終了可能
 - ログ表示付きGUI（ログコピー）
 """
 
@@ -419,8 +419,8 @@ class LauncherApp:
         except Exception:
             pass
 
-        # 通常ウィンドウ（タイトルバーにアイコン表示）。× / 閉じるは必ずトレイへ収納
-        self.root.protocol("WM_DELETE_WINDOW", self.hide_to_tray)
+        # 通常ウィンドウ（タイトルバーにアイコン表示）。× / 閉じるでプログラム終了
+        self.root.protocol("WM_DELETE_WINDOW", self.quit_app)
 
         style = ttk.Style()
         style.theme_use("clam")
@@ -473,7 +473,7 @@ class LauncherApp:
             row=2, column=2, padx=6, pady=(2, 0)
         )
 
-        # --- ボタン群（ログをコピーのみ。終了は×またはトレイメニュー）---
+        # --- ボタン群（ログをコピーのみ。終了は×またはトレイメニューの「終了」）---
         btn_frame = ttk.Frame(self.root)
         btn_frame.pack(fill="x", padx=12, pady=6)
 
@@ -835,7 +835,7 @@ class LauncherApp:
     # ----- トレイ（インジケーター）関連 -----
     def hide_to_tray(self, icon=None, item=None):
         """ウィンドウを隠し、タスクバーからも消してインジケーター（トレイ）に収納。
-        ×ボタン・トレイメニューから呼ばれる。終了はしない。"""
+        トレイメニューの「表示 / 収納」から呼ばれる。終了はしない。"""
         self.root.withdraw()  # 非表示 + タスクバーから消える
         self._window_visible = False
         self._log("sys", "インジケーターに収納しました")

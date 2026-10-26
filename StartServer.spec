@@ -5,7 +5,7 @@ a = Analysis(
     ['C:\\RocalHTMLSite\\StartServer.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('C:\\RocalHTMLSite\\StartServer.py\\..\\icon.ico', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
