@@ -60,6 +60,23 @@
   #filterBox input{border:1px solid #5b7696;background:#243044;border-radius:6px;padding:6px 8px;font-size:13px;font-weight:700;width:160px;color:#f2f6fb}
   #filterBox select{border:1px solid #5b7696;background:#243044;border-radius:6px;padding:6px 8px;font-size:13px;font-weight:700;color:#f2f6fb;cursor:pointer}
   body.manga-mode #filterBox{display:flex}
+  /* ===== ジャンルバー（FANZA/DLsite風） ===== */
+  #genreBar{display:none;width:100%;padding:6px 14px 8px;background:#243044;border-bottom:1px solid #3d5270;box-sizing:border-box}
+  body.manga-mode #genreBar{display:block}
+  .genre-bar-header{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+  .genre-bar-header .label{font-size:.78rem;font-weight:700;color:#9fb3c8;letter-spacing:.04em}
+  #genreClearBtn{background:#31445e;border:1px solid #5b7696;color:#d5e2ef;padding:3px 10px;border-radius:6px;font-size:.72rem;cursor:pointer;font-weight:700}
+  #genreClearBtn:hover{border-color:#2f9e44;color:#fff}
+  #genreClearBtn:disabled{opacity:.4;cursor:default}
+  #genreMatchCount{font-size:.72rem;color:#8aa0b8;margin-left:auto}
+  #genreChips{display:flex;flex-wrap:wrap;gap:6px;max-height:78px;overflow-y:auto;padding-bottom:2px}
+  .genre-chip{background:#2a3c54;border:1px solid #45607f;color:#c9d8e8;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700;cursor:pointer;user-select:none;transition:background .12s,border-color .12s,color .12s;white-space:nowrap}
+  .genre-chip:hover{border-color:#7eb8ff;color:#fff}
+  .genre-chip.active{background:#1e6b3a;border-color:#2f9e44;color:#e8fff0}
+  .genre-chip .cnt{opacity:.65;font-weight:600;margin-left:3px;font-size:.68rem}
+  .card-genres{display:flex;flex-wrap:wrap;gap:3px;padding:0 8px 6px;background:#31445e}
+  .card-genre-tag{font-size:.62rem;padding:1px 6px;border-radius:4px;background:#243044;color:#9fb3c8;border:1px solid #3d5270;white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis}
+  .card-type{font-size:.62rem;padding:1px 6px;border-radius:4px;background:#3a2f1a;color:#e0c070;border:1px solid #6a5a30;font-weight:700}
   footer{display:none}
   .mode-btn{background:transparent;border:none;color:#d5e2ef;padding:7px 12px;border-radius:6px;cursor:pointer;text-shadow:none;font-weight:750;font-size:.92rem}
   .mode-btn.active{background:#3d5878;color:#f7fbff;font-weight:800}
@@ -108,6 +125,15 @@
   <button id="forceStopBtn" title="Sunshineキャプチャを強制停止" style="display:none;align-items:center;margin-left:8px;padding:4px 10px;font-size:.78rem;font-weight:700;border-radius:6px;border:1px solid #c0392b;background:#a93226;color:#fff;cursor:pointer;letter-spacing:.02em;line-height:1.2;height:28px;align-self:center;">強制終了</button>
   <button id="openErogeTab" title="エロゲを新しいタブで開く" style="margin-left:8px;padding:4px 10px;font-size:.78rem;font-weight:700;border-radius:6px;border:1px solid #5b7696;background:#31445e;color:#f2f6fb;cursor:pointer;height:28px;align-self:center;">エロゲを開く</button>
 </header>
+<!-- ジャンルフィルタバー（漫画モード時のみ表示・既存の並び替え/名前絞り込みとは完全分離） -->
+<div id="genreBar">
+  <div class="genre-bar-header">
+    <span class="label">ジャンル</span>
+    <button id="genreClearBtn" disabled title="選択中のジャンルをクリア">クリア</button>
+    <span id="genreMatchCount"></span>
+  </div>
+  <div id="genreChips"></div>
+</div>
 <main>
   <div id="grid" role="list"></div>
   <div id="erogeMode">
@@ -229,6 +255,11 @@
   const erogeMode = document.getElementById('erogeMode');
   let currentPath = '';
   let renderId = 0;
+  // ===== ジャンル関連 =====
+  const genreCache = new Map();          // relPath -> { type, genres:[], ... }
+  const selectedGenres = new Set();      // 選択中ジャンル
+  let allGenreCounts = new Map();        // genre -> count
+  let genreLoadToken = 0;
   let currentIndex = 0;
   let currentMode = 'video';
   let mangaImages = [];
@@ -655,10 +686,13 @@
     toast.style.display = 'block';
     setTimeout(()=>{ toast.style.display = 'none'; }, 2200);
   }
-  function makeFolderCard(name, relPath, thumbSrc){
+  function makeFolderCard(name, relPath, thumbSrc, genreInfo){
     const el = document.createElement('div'); el.className='card'; el.tabIndex=0; el.setAttribute('role','listitem');
     el.dataset.path = relPath;
     el.dataset.needthumb = thumbSrc ? '0' : '1';
+    const genres = (genreInfo && Array.isArray(genreInfo.genres)) ? genreInfo.genres : [];
+    el.dataset.genres = genres.join('\t');
+    if (genreInfo && genreInfo.type) el.dataset.type = genreInfo.type;
     const wrap = document.createElement('div'); wrap.className='thumb-wrap';
     if(thumbSrc){
       const img = document.createElement('img'); img.className='thumb'; img.alt=name; img.src = thumbSrc; img.loading='lazy'; img.decoding='async';
@@ -672,6 +706,24 @@
     const meta=document.createElement('div'); meta.className='meta';
     const title=document.createElement('div'); title.className='title'; title.textContent=safeDecode(name);
     meta.appendChild(title); el.appendChild(meta);
+    // カード下部にジャンルタグを少し表示（DLsite/FANZA風）
+    if (genres.length || (genreInfo && genreInfo.type)) {
+      const gwrap = document.createElement('div');
+      gwrap.className = 'card-genres';
+      if (genreInfo && genreInfo.type) {
+        const t = document.createElement('span');
+        t.className = 'card-type';
+        t.textContent = genreInfo.type;
+        gwrap.appendChild(t);
+      }
+      genres.slice(0, 4).forEach(g => {
+        const s = document.createElement('span');
+        s.className = 'card-genre-tag';
+        s.textContent = g;
+        gwrap.appendChild(s);
+      });
+      el.appendChild(gwrap);
+    }
     el.addEventListener('click', ()=>{
       if(currentMode === 'manga') openMangaFolder(relPath);
       else if(currentMode === 'asmr') openASMRFolder(relPath);
@@ -825,6 +877,154 @@
     } else arr.sort(nat);
     return arr;
   }
+
+  // ===== ジャンル読み込み・フィルタ =====
+  async function loadGenreInfo(relPath){
+    if (genreCache.has(relPath)) return genreCache.get(relPath);
+    const folderUrl = joinUrl(MANGA_ROOT, relPath);
+    // 1. genre.json を優先
+    try {
+      const res = await fetch(joinUrl(folderUrl, 'genre.json'), { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        const info = {
+          type: data.type || data.category || '',
+          genres: Array.isArray(data.genres) ? data.genres : (Array.isArray(data.tags) ? data.tags : []),
+          characters: data.characters || [],
+          circle: data.circle || data.author || '',
+          confidence: data.confidence
+        };
+        genreCache.set(relPath, info);
+        return info;
+      }
+    } catch(e){}
+    // 2. genres.txt / tags.txt フォールバック（1行1ジャンル）
+    for (const fname of ['genres.txt', 'tags.txt', 'genre.txt']) {
+      try {
+        const res = await fetch(joinUrl(folderUrl, fname), { cache: 'no-store' });
+        if (res.ok) {
+          const text = await res.text();
+          const genres = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+          const info = { type: '', genres, characters: [], circle: '' };
+          genreCache.set(relPath, info);
+          return info;
+        }
+      } catch(e){}
+    }
+    const empty = { type: '', genres: [], characters: [], circle: '' };
+    genreCache.set(relPath, empty);
+    return empty;
+  }
+
+  function rebuildGenreChips(){
+    const chipsEl = document.getElementById('genreChips');
+    if (!chipsEl) return;
+    chipsEl.innerHTML = '';
+    // 出現数の多い順
+    const sorted = [...allGenreCounts.entries()].sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ja'));
+    sorted.forEach(([g, cnt]) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'genre-chip' + (selectedGenres.has(g) ? ' active' : '');
+      chip.innerHTML = `${g}<span class="cnt">${cnt}</span>`;
+      chip.dataset.genre = g;
+      chip.addEventListener('click', () => {
+        // 単一選択：同じものを押したら解除、別のを押したらそれだけ選択
+        const already = selectedGenres.has(g);
+        selectedGenres.clear();
+        chipsEl.querySelectorAll('.genre-chip').forEach(c => c.classList.remove('active'));
+        if (!already) {
+          selectedGenres.add(g);
+          chip.classList.add('active');
+        }
+        applyCombinedFilter();
+        updateGenreClearBtn();
+      });
+      chipsEl.appendChild(chip);
+    });
+    updateGenreClearBtn();
+  }
+
+  function updateGenreClearBtn(){
+    const btn = document.getElementById('genreClearBtn');
+    if (btn) btn.disabled = selectedGenres.size === 0;
+  }
+
+  function applyCombinedFilter(){
+    const nameQ = (document.getElementById('folderFilter')?.value || '').trim().toLowerCase();
+    let visible = 0;
+    const selected = selectedGenres.size > 0 ? [...selectedGenres][0] : null;
+    grid.querySelectorAll('.card').forEach(card => {
+      const name = (card.querySelector('.title')?.textContent || '').toLowerCase();
+      const nameOk = !nameQ || name.includes(nameQ);
+      let genreOk = true;
+      if (selected) {
+        const cardGenres = (card.dataset.genres || '').split('\t').filter(Boolean);
+        genreOk = cardGenres.includes(selected);
+      }
+      const show = nameOk && genreOk;
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    const cntEl = document.getElementById('genreMatchCount');
+    if (cntEl) {
+      if (selected || nameQ) {
+        cntEl.textContent = `${visible} 件表示`;
+      } else {
+        cntEl.textContent = '';
+      }
+    }
+  }
+
+  async function loadGenresForCurrentFolders(folderRelPaths, thisId){
+    const token = ++genreLoadToken;
+    allGenreCounts = new Map();
+    const concurrency = 8;
+    let idx = 0;
+    async function worker(){
+      while (idx < folderRelPaths.length) {
+        if (token !== genreLoadToken || thisId !== renderId) return;
+        const i = idx++;
+        const rel = folderRelPaths[i];
+        const info = await loadGenreInfo(rel);
+        if (token !== genreLoadToken || thisId !== renderId) return;
+        (info.genres || []).forEach(g => {
+          allGenreCounts.set(g, (allGenreCounts.get(g) || 0) + 1);
+        });
+        // カードにタグを後から差し込む
+        const card = grid.querySelector(`.card[data-path="${CSS.escape(rel)}"]`);
+        if (card && (info.genres.length || info.type)) {
+          card.dataset.genres = (info.genres || []).join('\t');
+          if (info.type) card.dataset.type = info.type;
+          // 既にジャンル表示がなければ追加
+          if (!card.querySelector('.card-genres')) {
+            const gwrap = document.createElement('div');
+            gwrap.className = 'card-genres';
+            if (info.type) {
+              const t = document.createElement('span');
+              t.className = 'card-type';
+              t.textContent = info.type;
+              gwrap.appendChild(t);
+            }
+            info.genres.slice(0, 4).forEach(g => {
+              const s = document.createElement('span');
+              s.className = 'card-genre-tag';
+              s.textContent = g;
+              gwrap.appendChild(s);
+            });
+            card.appendChild(gwrap);
+          }
+        }
+      }
+    }
+    const workers = Array.from({length: Math.min(concurrency, folderRelPaths.length)}, () => worker());
+    await Promise.all(workers);
+    if (token === genreLoadToken && thisId === renderId) {
+      rebuildGenreChips();
+      applyCombinedFilter();
+    }
+  }
+
   async function renderCurrent(){
     const thisId = ++renderId;
     thumbQueue.length = 0;
@@ -860,6 +1060,7 @@
     const files = fileEntries.map(e => e.href);
     if(currentMode === 'video') currentFolderVideoFiles = files.filter(f => f.toLowerCase().endsWith('.mp4'));
     const frag = document.createDocumentFragment();
+    const mangaFolderRels = [];
     for (const f of folders){
       if (currentMode === 'manga'){ const name = f.replace(/\/+$/,''); if (MANGA_EXCLUDE.has(name)) continue; }
       const name = f.replace(/\/+$/,'');
@@ -879,9 +1080,11 @@
           thumbKnown = true;
         }
       }
-      const card = makeFolderCard(name, relPath, thumbSrc || null);
+      const cachedGenre = (currentMode === 'manga') ? genreCache.get(relPath) : null;
+      const card = makeFolderCard(name, relPath, thumbSrc || null, cachedGenre || null);
       if (thumbKnown) card.dataset.thumbdone = '1';
       frag.appendChild(card);
+      if (currentMode === 'manga') mangaFolderRels.push(relPath);
     }
     if (currentMode !== 'asmr'){
       if (currentMode === 'video'){
@@ -906,12 +1109,25 @@
     }
     grid.appendChild(frag);
     if (currentMode === 'manga') document.body.classList.add('manga-mode');
+    else document.body.classList.remove('manga-mode');
     const ff = document.getElementById('folderFilter');
     if (ff && ff.value && currentMode === 'manga') ff.dispatchEvent(new Event('input'));
     const baseStatus = `${currentMode === 'video' ? 'フォルダ' : (currentMode === 'manga' ? '漫画' : 'ASMR')}: ${displayPathForStatus()} — ${folders.length} フォルダ, ${files.length} アイテム`;
     status.textContent = baseStatus;
     bindThumbObserver(thisId, base);
     focusIndex(0);
+    // ジャンル情報を非同期で読み込み（表示はブロックしない）
+    if (currentMode === 'manga' && mangaFolderRels.length > 0) {
+      loadGenresForCurrentFolders(mangaFolderRels, thisId);
+    } else {
+      // ジャンルバーをクリア
+      const chipsEl = document.getElementById('genreChips');
+      if (chipsEl) chipsEl.innerHTML = '';
+      selectedGenres.clear();
+      updateGenreClearBtn();
+      const cntEl = document.getElementById('genreMatchCount');
+      if (cntEl) cntEl.textContent = '';
+    }
     // 未キャッシュの更新日時だけ裏で取得 → 終わったら一度だけ並べ直す（表示はブロックしない）
     if (currentMode === 'manga' && mangaNeedMtimes.length > 0 &&
         (mangaSortMode === 'added-desc' || mangaSortMode === 'added-asc')) {
@@ -1363,11 +1579,16 @@
   const folderFilter = document.getElementById('folderFilter');
   if (folderFilter) {
     folderFilter.addEventListener('input', () => {
-      const q = folderFilter.value.trim().toLowerCase();
-      grid.querySelectorAll('.card').forEach(card => {
-        const name = (card.querySelector('.title') ? card.querySelector('.title').textContent : '').toLowerCase();
-        card.style.display = !q || name.includes(q) ? '' : 'none';
-      });
+      applyCombinedFilter();
+    });
+  }
+  const genreClearBtn = document.getElementById('genreClearBtn');
+  if (genreClearBtn) {
+    genreClearBtn.addEventListener('click', () => {
+      selectedGenres.clear();
+      document.querySelectorAll('#genreChips .genre-chip.active').forEach(c => c.classList.remove('active'));
+      applyCombinedFilter();
+      updateGenreClearBtn();
     });
   }
   const mangaSortSel = document.getElementById('mangaSort');

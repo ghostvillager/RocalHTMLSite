@@ -2,7 +2,6 @@
 chcp 65001 >nul
 setlocal EnableExtensions
 
-:: このbatがあるフォルダへ移動（UNCでも pushd で一時ドライブ割り当て）
 pushd "%~dp0"
 if errorlevel 1 (
     echo.
